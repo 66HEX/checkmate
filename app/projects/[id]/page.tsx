@@ -335,7 +335,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 ) : (
                     <>
                         <h1 className="text-4xl font-bold mb-4">{project.title}</h1>
-                        <p className="text-xl mb-6">{project.description}</p>
+                        <p className="text-lg mb-6">{project.description}</p>
                         <button
                             onClick={() => setIsEditing(true)}
                             className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
