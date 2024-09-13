@@ -93,7 +93,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     };
 
     if (status === "loading" || project === null) {
-        return <div className="w-screen h-screen flex items-center justify-center font-JetBrainsMono text-offblack text-2xl">Loading...</div>;
+        return <div className="w-screen h-svh flex items-center justify-center font-JetBrainsMono text-offblack text-2xl">Loading...</div>;
     }
 
     return (
