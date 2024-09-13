@@ -23,49 +23,51 @@ const LoginPage = () => {
         if (result?.error) {
             setError('Invalid email or password');
         } else if (result?.ok) {
-            router.push('/'); // Możesz zmienić ten adres na odpowiedni
+            router.push('/');
         }
     };
 
     return (
-        <div className="flex items-center justify-center h-screen w-screen text-offblack font-JetBrainsMono p-4 md:p-8 lg:p-12 xl:p-16">
-            <div className="w-full max-w-md p-8 bg-offwhite rounded-lg shadow-lg relative">
-                <h1 className="text-2xl font-bold mb-6 text-center">Login</h1>
+        <div className="flex items-center justify-center h-screen w-screen font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
+            <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
+                <h1 className="text-2xl font-bold mb-6 text-center text-offblack">Login</h1>
                 <form onSubmit={handleLogin}>
                     <div className="mb-4">
-                        <label htmlFor="email" className="block text-sm font-medium mb-2">Email</label>
+                        <label htmlFor="email" className="block text-sm mb-2 text-darkgray">Email</label>
                         <input
                             type="email"
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full p-2 bg-offwhite text-offblack border border-lightgray rounded focus:outline-none focus:border-bluecustom"
+                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            placeholder={`example@gmail.com`}
                         />
                     </div>
                     <div className="mb-6">
-                        <label htmlFor="password" className="block text-sm font-medium mb-2">Password</label>
+                        <label htmlFor="password" className="block text-sm mb-2 text-darkgray ">Password</label>
                         <input
                             type="password"
                             id="password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full p-2 bg-offwhite text-offblack border border-lightgray rounded focus:outline-none focus:border-bluecustom"
+                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            placeholder={`Password`}
                         />
                     </div>
-                    {error && <p className="text-red-500 text-center mb-4">{error}</p>}
+                    {error && <p className="text-warning text-sm text-center mb-4">{error}</p>}
                     <button
                         type="submit"
-                        className="w-full bg-bluecustom hover:bg-bluehover text-offwhite p-3 rounded transition-all shadow-lg mb-4"
+                        className="w-full bg-brand hover:bg-brandhover text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
                     >
                         Log In
                     </button>
                 </form>
                 <div className="text-center mt-4">
-                    <p className="text-darkgray mb-2">Don&apos;t have an account?</p>
+                    <p className="text-darkgray text-sm mb-2">Don&apos;t have an account?</p>
                     <Link href="/register">
-                        <button className="w-full bg-greencustom hover:bg-greenhover text-offwhite p-3 rounded transition-all shadow-lg">
+                        <button className="w-full bg-success hover:bg-successhover text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center">
                             Create Account
                         </button>
                     </Link>

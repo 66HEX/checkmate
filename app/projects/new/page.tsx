@@ -48,13 +48,11 @@ export default function NewProjectForm() {
             // Start a transaction
             const { data: project, error: projectError } = await supabase
                 .from('projects')
-                .insert([
-                    {
-                        title: projectTitle,
-                        description: projectDescription,
-                        user_email: session.user.email
-                    }
-                ])
+                .insert([{
+                    title: projectTitle,
+                    description: projectDescription,
+                    user_email: session.user.email
+                }])
                 .select('id')
                 .single();
 
@@ -91,51 +89,51 @@ export default function NewProjectForm() {
     };
 
     return (
-        <div className="min-h-screen w-screen flex flex-col items-center justify-center font-JetBrainsMono p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
+        <div className="w-screen min-h-screen flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
             <form
                 onSubmit={handleSubmit}
-                className="bg-offwhite p-6 rounded-lg shadow-lg w-full max-w-lg"
+                className="bg-offwhite p-8 rounded-lg shadow-lg w-full max-w-lg mt-16 md:mt-0"
             >
-                <h1 className="text-2xl font-bold mb-4 text-offblack text-center">Add New Project</h1>
+                <h1 className="text-3xl font-bold mb-6 text-offblack text-center">Add New Project</h1>
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-darkgray mb-2">Project Title</label>
+                <div className="mb-6">
+                    <label className="block text-darkgray text-sm mb-2">Project Title</label>
                     <input
                         type="text"
                         value={projectTitle}
                         onChange={(e) => setProjectTitle(e.target.value)}
-                        className="w-full p-2 border border-lightgray rounded focus:outline-none focus:border-bluecustom"
+                        className="w-full p-2 bg-lightgray rounded focus:outline-none text-base"
                         required
                     />
                 </div>
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-darkgray mb-2">Project Description</label>
+                <div className="mb-6">
+                    <label className="block text-darkgray text-sm mb-2">Project Description</label>
                     <textarea
                         value={projectDescription}
                         onChange={(e) => setProjectDescription(e.target.value)}
-                        className="w-full p-2 border border-lightgray rounded focus:outline-none focus:border-bluecustom"
-                        rows={3}
+                        className="w-full p-2 bg-lightgray rounded focus:outline-none text-base"
+                        rows={2}
                         required
                     />
                 </div>
 
-                <div className="mb-4">
-                    <label className="block text-sm font-medium text-darkgray mb-2">Tasks</label>
+                <div className="mb-6">
+                    <label className="block text-darkgray text-sm mb-2">Tasks</label>
                     {tasks.map((task, index) => (
-                        <div key={index} className="flex items-center mb-2">
+                        <div key={index} className="flex items-center mb-3">
                             <input
                                 type="text"
                                 value={task}
                                 onChange={(e) => handleTaskChange(index, e)}
-                                className="w-full p-2 border border-lightgray rounded focus:outline-none focus:border-bluecustom"
+                                className="w-full p-2 bg-lightgray rounded focus:outline-none text-base"
                                 placeholder={`Task ${index + 1}`}
                                 required
                             />
                             <button
                                 type="button"
                                 onClick={() => handleRemoveTask(index)}
-                                className="ml-2 p-2 bg-redcustom hover:bg-redhover text-white rounded"
+                                className="ml-3 p-2 bg-warning hover:bg-warninghover text-white rounded text-base"
                             >
                                 Remove
                             </button>
@@ -145,7 +143,7 @@ export default function NewProjectForm() {
                         <button
                             type="button"
                             onClick={handleAddTask}
-                            className="mt-2 w-full p-2 bg-greencustom hover:bg-greenhover text-white rounded"
+                            className="mt-2 w-full p-2 bg-success hover:bg-successhover text-white rounded text-base"
                         >
                             Add Task
                         </button>
@@ -154,7 +152,7 @@ export default function NewProjectForm() {
 
                 <button
                     type="submit"
-                    className="w-full p-2 bg-bluecustom hover:bg-bluehover text-offwhite rounded shadow-lg"
+                    className="w-full p-2 bg-brand hover:bg-brandhover text-offwhite rounded shadow-lg text-base"
                 >
                     Save Project
                 </button>

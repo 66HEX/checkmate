@@ -1,25 +1,26 @@
 "use client";
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { supabase } from "@/app/utils/supabaseClient"; // Upewnij się, że ten import jest prawidłowy
+import { supabase } from "@/app/utils/supabaseClient"; // Ensure this import is correct
 
 export default function Profile() {
     const { data: session, status } = useSession();
     const router = useRouter();
-    const [email, setEmail] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    const [email, setEmail] = useState<string>("");
+    const [newPassword, setNewPassword] = useState<string>("");
+    const [confirmPassword, setConfirmPassword] = useState<string>("");
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string>("");
 
     useEffect(() => {
-        if (status === "loading") return; // Czekaj na załadowanie sesji
+        if (status === "loading") return; // Wait for session to load
 
         if (!session) {
-            router.push("/"); // Przekieruj, jeśli użytkownik nie jest zalogowany
+            router.push("/"); // Redirect if not logged in
         } else if (session?.user?.email) {
-            setEmail(session.user.email); // Ustaw email z sesji
+            setEmail(session.user.email); // Set email from session
         }
     }, [session, status, router]);
 
@@ -51,68 +52,55 @@ export default function Profile() {
     };
 
     return (
-        <div className="flex items-center justify-center h-screen w-screen text-offblack font-JetBrainsMono p-4 md:p-8 lg:p-12 xl:p-16">
-            <div className="w-full max-w-md p-8 bg-offwhite rounded-lg shadow-lg relative">
+        <div className="flex items-center justify-center h-screen w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
+            <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Profile</h1>
                 <div className="mb-4">
-                    <label
-                        htmlFor="email"
-                        className="block text-sm font-medium mb-2"
-                    >
-                        Email
-                    </label>
+                    <label htmlFor="email" className="block text-sm mb-2">Email</label>
                     <input
                         type="email"
                         id="email"
                         value={email}
                         readOnly
-                        className="w-full p-2 bg-gray-200 text-offblack border border-lightgray rounded"
+                        className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
                     />
                 </div>
 
                 <form onSubmit={handlePasswordChange}>
                     <div className="mb-4">
-                        <label
-                            htmlFor="newPassword"
-                            className="block text-sm font-medium mb-2"
-                        >
-                            New Password
-                        </label>
+                        <label htmlFor="newPassword" className="block text-sm mb-2">New Password</label>
                         <input
                             type="password"
                             id="newPassword"
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             required
-                            className="w-full p-2 bg-offwhite text-offblack border border-lightgray rounded focus:outline-none focus:border-bluecustom"
+                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            placeholder={`New Password`}
                         />
                     </div>
 
                     <div className="mb-6">
-                        <label
-                            htmlFor="confirmPassword"
-                            className="block text-sm font-medium mb-2"
-                        >
-                            Confirm New Password
-                        </label>
+                        <label htmlFor="confirmPassword" className="block text-sm mb-2">Confirm New Password</label>
                         <input
                             type="password"
                             id="confirmPassword"
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            className="w-full p-2 bg-offwhite text-offblack border border-lightgray rounded focus:outline-none focus:border-bluecustom"
+                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            placeholder={`Confirm Password`}
                         />
                     </div>
 
                     {error && (
-                        <p className="text-red-500 text-center mb-4">{error}</p>
+                        <p className="text-warning text-center mb-4 text-sm">{error}</p>
                     )}
 
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-bluecustom hover:bg-bluehover text-offwhite p-3 rounded transition-all shadow-lg mb-4"
+                        className="w-full bg-brand hover:bg-brandhover text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
                     >
                         {loading ? "Updating..." : "Update Password"}
                     </button>

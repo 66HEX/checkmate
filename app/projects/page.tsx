@@ -42,7 +42,7 @@ export default function Tasks() {
             const { data, error } = await supabase
                 .from('projects')
                 .select(`id, title, description, tasks (id, status)`)
-                .eq('user_email', session?.user?.email); // Filter projects by the current user's email
+                .eq('user_email', session?.user?.email);
 
             if (error) {
                 throw error;
@@ -59,13 +59,13 @@ export default function Tasks() {
     };
 
     if (status === "loading") {
-        return <div>Loading...</div>;
+        return <div className="w-screen h-screen flex items-center justify-center font-NeueMontreal text-offblack text-2xl">Loading...</div>;
     }
 
     return (
-        <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-JetBrainsMono p-4 md:p-8 lg:p-12 xl:p-16 mt-14">
+        <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16">
             <Link href="/projects/new">
-                <div className="relative w-full h-64 bg-bluecustom hover:bg-bluehover text-offwhite rounded shadow-lg p-4 flex items-center justify-center cursor-pointer transition-all">
+                <div className="relative w-full h-64 bg-brand hover:bg-brandhover text-offwhite rounded shadow-lg p-6 flex items-center justify-center cursor-pointer transition-all">
                     <span className="text-2xl font-bold">Add New Project</span>
                     <div className="absolute bottom-4 right-4 h-10 w-10">
                         <ArrowIcon width={40} height={40} />
@@ -80,21 +80,21 @@ export default function Tasks() {
 
                 return (
                     <Link key={project.id} href={`/projects/${project.id}`}>
-                        <div className="w-full h-64 bg-offwhite hover:bg-lightgray text-offblack rounded shadow-lg p-4 cursor-pointer transition-all flex flex-col justify-between">
+                        <div className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between">
                             <div>
-                                <h3 className="text-xl font-bold mb-2">{project.title}</h3>
-                                <p className="text-sm text-darkgray">
+                                <h3 className="text-2xl font-bold mb-3">{project.title}</h3>
+                                <p className="text-base text-darkgray mb-4">
                                     {project.description}
                                 </p>
                             </div>
                             <div className="mt-4">
-                                <p className="text-sm text-gray-500">
+                                <p className="text-base text-gray-500 mb-1">
                                     {totalTasks} Tasks
                                 </p>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-base text-gray-500 mb-1">
                                     Completed: {completedTasks}
                                 </p>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-base text-gray-500">
                                     Uncompleted: {uncompletedTasks}
                                 </p>
                             </div>

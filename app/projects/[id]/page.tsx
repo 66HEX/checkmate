@@ -94,35 +94,35 @@ export default function ProjectDetailPage({ params }: PageProps) {
     };
 
     if (status === "loading" || project === null) {
-        return <div>Loading...</div>;
+        return <div className="w-screen h-screen flex items-center justify-center font-JetBrainsMono text-offblack text-2xl">Loading...</div>;
     }
 
     return (
-        <div className="w-screen max-w-5xl mx-auto font-JetBrainsMono p-4 md:p-8 lg:p-12 xl:p-16 mt-14">
-            <div className="w-full h-full bg-offwhite text-offblack rounded shadow-lg p-4 flex flex-col justify-between">
-                <h1 className="text-3xl font-bold mb-4">{project.title}</h1>
-                <p className="text-lg mb-4">{project.description}</p>
-                <p className="text-sm mb-4">Owner&apos;s Email: {project.user_email}</p>
+        <div className="w-screen max-w-5xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16">
+            <div className="w-full h-full bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
+                <h1 className="text-4xl font-bold mb-6">{project.title}</h1>
+                <p className="text-xl mb-6">{project.description}</p>
+                <p className="text-base mb-6">Owner&apos;s Email: <span className="font-medium text-base">{project.user_email}</span></p>
 
-                <h2 className="text-xl font-semibold mb-2">Tasks</h2>
+                <h2 className="text-2xl font-semibold mb-4">Tasks</h2>
                 {project.tasks.length > 0 ? (
-                    <ul className="space-y-2 text-offwhite">
+                    <ul className="space-y-4">
                         {project.tasks.map((task) => (
                             <li
                                 key={task.id}
-                                className={`p-4 rounded cursor-pointer transition-all ${
+                                className={`p-2 rounded cursor-pointer transition-all text-offwhite text-lg font-medium ${
                                     task.status === 'completed'
-                                        ? 'bg-greencustom hover:bg-greenhover'
-                                        : 'bg-redcustom hover:bg-redhover'
+                                        ? 'bg-success hover:bg-successhover'
+                                        : 'bg-warning hover:bg-warninghover'
                                 }`}
                                 onClick={() => toggleTaskStatus(task.id, task.status)}
                             >
-                                <span className="font-medium">{task.title}:</span> {task.status}
+                                <span>{task.title}:</span> {task.status}
                             </li>
                         ))}
                     </ul>
                 ) : (
-                    <p>No tasks available for this project.</p>
+                    <p className="text-lg">No tasks available for this project.</p>
                 )}
             </div>
         </div>
