@@ -232,6 +232,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
         } catch (error) {
             console.error('Error deleting task:', error);
         }
+        fetchProject();
     };
 
     const handleDelete = async () => {
