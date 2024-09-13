@@ -62,7 +62,7 @@ export default function Profile() {
                         id="email"
                         value={email}
                         readOnly
-                        className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                        className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                     />
                 </div>
 
@@ -75,7 +75,7 @@ export default function Profile() {
                             value={newPassword}
                             onChange={(e) => setNewPassword(e.target.value)}
                             required
-                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                             placeholder={`New Password`}
                         />
                     </div>
@@ -88,7 +88,7 @@ export default function Profile() {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                             placeholder={`Confirm Password`}
                         />
                     </div>

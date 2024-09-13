@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+import { FaCheck, FaTimes } from 'react-icons/fa'; // Import icons
 
 interface Task {
     id: number;
@@ -33,7 +34,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [editTasks, setEditTasks] = useState<Task[]>([]);
-    const [newTaskTitle, setNewTaskTitle] = useState(''); // Nowe pole dla tytułu nowego zadania
+    const [newTaskTitle, setNewTaskTitle] = useState('');
     const { data: session, status } = useSession();
     const router = useRouter();
     const projectId = params.id;
@@ -109,7 +110,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
     };
 
-    const handleOnDragEnd = async (result: any) => {
+    const handleOnDragEnd = async (result: DropResult) => {
         const { destination, source } = result;
 
         if (!destination || destination.index === source.index) {
@@ -180,6 +181,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         project_id: projectId,
                     })));
 
+
                 if (newTasksError) {
                     throw newTasksError;
                 }
@@ -204,6 +206,32 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
         setEditTasks([...editTasks, newTask]);
         setNewTaskTitle(''); // Resetuj pole tekstowe
+    };
+
+    const handleDeleteTask = async (taskId: number) => {
+        try {
+            const { error } = await supabase
+                .from('tasks')
+                .delete()
+                .eq('id', taskId);
+
+            if (error) {
+                throw error;
+            }
+
+            // Aktualizacja stanu po usunięciu zadania
+            setProject(prev => {
+                if (!prev) return null;
+                const updatedTasks = prev.tasks.filter(task => task.id !== taskId);
+                return {
+                    ...prev,
+                    tasks: updatedTasks,
+                };
+            });
+
+        } catch (error) {
+            console.error('Error deleting task:', error);
+        }
     };
 
     const handleDelete = async () => {
@@ -237,11 +265,9 @@ export default function ProjectDetailPage({ params }: PageProps) {
     }
 
     return (
-        <div className="w-screen max-w-xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16">
-            <div
-                className="w-full h-full bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
-                <p className="text-base mb-6">Owner&apos;s Email: <span
-                    className="font-medium text-base">{project.user_email}</span></p>
+        <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16">
+            <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
+                <p className="text-base mb-6">Owner&apos;s Email: <span className="font-medium text-base">{project.user_email}</span></p>
 
                 {isEditing ? (
                     <>
@@ -267,26 +293,31 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                         updatedTasks[index].title = e.target.value;
                                         setEditTasks(updatedTasks);
                                     }}
-                                    className="p-2 border border-darkgray focus:outline-none rounded text-base"
+                                    className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                                 />
+                                <button
+                                    onClick={() => handleDeleteTask(task.id)}
+                                    className="ml-2 bg-offblack hover:bg-darkgray text-white p-2 rounded"
+                                >
+                                    Remove
+                                </button>
                             </div>
                         ))}
-                        {/* Dodanie nowego zadania */}
                         <div className="flex items-center mb-4">
                             <input
                                 type="text"
                                 value={newTaskTitle}
                                 onChange={(e) => setNewTaskTitle(e.target.value)}
-                                className="p-2 border border-darkgray focus:outline-none rounded text-base"
+                                className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                                 placeholder="New Task Title"
                             />
-                            <button
-                                onClick={handleAddTask}
-                                className="ml-2 bg-offblack text-white p-2 rounded"
-                            >
-                                Add Task
-                            </button>
                         </div>
+                        <button
+                            onClick={handleAddTask}
+                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded mb-3"
+                        >
+                            Add Task
+                        </button>
                         <button
                             onClick={handleSave}
                             className="bg-offblack hover:bg-darkgray text-white p-2 rounded mb-3"
@@ -333,14 +364,17 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                                             ref={provided.innerRef}
                                                             {...provided.draggableProps}
                                                             {...provided.dragHandleProps}
-                                                            className={`p-2 rounded cursor-pointer transition-all text-offwhite text-lg font-medium ${
+                                                            className={`p-2 rounded cursor-pointer transition-all text-offwhite text-lg font-medium flex items-center justify-between ${
                                                                 task.status === 'completed'
                                                                     ? 'bg-success hover:bg-successhover'
                                                                     : 'bg-warning hover:bg-warninghover'
                                                             }`}
                                                             onClick={() => toggleTaskStatus(task.id, task.status)}
                                                         >
-                                                            <span>{task.title}:</span> {task.status}
+                                                            <span>{task.title}</span>
+                                                            <span className="text-xl">
+                                                                {task.status === 'completed' ? <FaCheck /> : <FaTimes />}
+                                                            </span>
                                                         </li>
                                                     )}
                                                 </Draggable>

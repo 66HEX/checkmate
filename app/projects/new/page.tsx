@@ -1,16 +1,29 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { supabase } from '@/app/utils/supabaseClient'; // Ensure this points to your Supabase client
+import { supabase } from '@/app/utils/supabaseClient';
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
+
+interface Task {
+    id?: number;
+    title: string;
+    status: 'completed' | 'uncompleted';
+    order: number;
+}
 
 export default function NewProjectForm() {
     const [projectTitle, setProjectTitle] = useState<string>('');
     const [projectDescription, setProjectDescription] = useState<string>('');
-    const [tasks, setTasks] = useState<string[]>(['']);
+    const [tasks, setTasks] = useState<Task[]>([]);
+    const [newTaskTitle, setNewTaskTitle] = useState('');
     const { data: session, status } = useSession();
     const router = useRouter();
+
+    const fetchInitialTasks = useCallback(() => {
+        setTasks([{ title: '', status: 'uncompleted', order: 1 }]);
+    }, []);
 
     useEffect(() => {
         if (status === "loading") {
@@ -19,22 +32,68 @@ export default function NewProjectForm() {
 
         if (!session) {
             router.push('/');
+            return;
         }
-    }, [session, status, router]);
+
+        fetchInitialTasks();
+    }, [session, status, router, fetchInitialTasks]);
 
     const handleTaskChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-        const newTasks = [...tasks];
-        newTasks[index] = event.target.value;
-        setTasks(newTasks);
+        const updatedTasks = [...tasks];
+        updatedTasks[index].title = event.target.value;
+        setTasks(updatedTasks);
     };
 
     const handleAddTask = () => {
-        setTasks([...tasks, '']);
+        if (!newTaskTitle.trim()) return;
+
+        const newTask: Task = {
+            title: newTaskTitle,
+            status: 'uncompleted',
+            order: tasks.length + 1,
+        };
+
+        setTasks([...tasks, newTask]);
+        setNewTaskTitle(''); // Reset the input field
     };
 
     const handleRemoveTask = (index: number) => {
-        const newTasks = tasks.filter((_, i) => i !== index);
-        setTasks(newTasks);
+        const updatedTasks = tasks.filter((_, i) => i !== index);
+        updatedTasks.forEach((task, i) => task.order = i + 1); // Update order after removal
+        setTasks(updatedTasks);
+    };
+
+    const handleOnDragEnd = async (result: DropResult) => {
+        const { destination, source } = result;
+
+        if (!destination || destination.index === source.index) {
+            return;
+        }
+
+        const updatedTasks = Array.from(tasks);
+        const [movedTask] = updatedTasks.splice(source.index, 1);
+        updatedTasks.splice(destination.index, 0, movedTask);
+
+        updatedTasks.forEach((task, index) => {
+            task.order = index + 1;
+        });
+
+        setTasks(updatedTasks);
+
+        try {
+            for (const task of updatedTasks) {
+                const { error } = await supabase
+                    .from('tasks')
+                    .update({ order: task.order })
+                    .eq('id', task.id);
+
+                if (error) {
+                    throw new Error(error.message);
+                }
+            }
+        } catch (error) {
+            console.error('Error updating task order:', error);
+        }
     };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -67,12 +126,11 @@ export default function NewProjectForm() {
 
             const projectId = project.id;
 
-            // Create an array of tasks with the 'order' field
-            const taskInserts = tasks.map((task, index) => ({
+            const taskInserts = tasks.map((task) => ({
                 project_id: projectId,
-                title: task,
-                status: 'uncompleted',
-                order: index + 1 // Set the order based on index
+                title: task.title,
+                status: task.status,
+                order: task.order
             }));
 
             const { error: tasksError } = await supabase
@@ -91,11 +149,15 @@ export default function NewProjectForm() {
         }
     };
 
+    if (status === "loading") {
+        return <div className="w-screen h-svh flex items-center justify-center font-NeueMontreal text-offwhite text-2xl">Loading...</div>;
+    }
+
     return (
         <div className="w-screen min-h-svh flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
             <form
                 onSubmit={handleSubmit}
-                className="bg-offwhite p-8 rounded-lg shadow-lg w-full max-w-lg"
+                className="bg-offwhite p-8 rounded shadow-lg w-full max-w-lg"
             >
                 <h1 className="text-3xl font-bold mb-6 text-offblack text-center">Add New Project</h1>
 
@@ -123,37 +185,68 @@ export default function NewProjectForm() {
                     />
                 </div>
 
-                <div className="mb-3">
+                <div className="mb-6">
                     <label className="block text-darkgray text-base mb-2">Tasks</label>
-                    {tasks.map((task, index) => (
-                        <div key={index} className="flex items-center mb-3">
-                            <input
-                                type="text"
-                                value={task}
-                                onChange={(e) => handleTaskChange(index, e)}
-                                className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
-                                placeholder={`Task ${index + 1}`}
-                                required
-                            />
-                            <button
-                                type="button"
-                                onClick={() => handleRemoveTask(index)}
-                                className="ml-3 p-2 bg-offblack hover:bg-darkgray text-white rounded text-base"
-                            >
-                                Remove
-                            </button>
-                        </div>
-                    ))}
-                    <div className="w-full flex justify-end">
-                        <button
-                            type="button"
-                            onClick={handleAddTask}
-                            className="mt-2 w-full p-2 bg-offblack hover:bg-darkgray text-white rounded text-base"
-                        >
-                            Add Task
-                        </button>
-                    </div>
+                    <DragDropContext onDragEnd={handleOnDragEnd}>
+                        <Droppable droppableId="tasks">
+                            {(provided) => (
+                                <ul
+                                    className="space-y-4"
+                                    {...provided.droppableProps}
+                                    ref={provided.innerRef}
+                                >
+                                    {tasks.map((task, index) => (
+                                        <Draggable key={index} draggableId={index.toString()} index={index}>
+                                            {(provided) => (
+                                                <li
+                                                    ref={provided.innerRef}
+                                                    {...provided.draggableProps}
+                                                    {...provided.dragHandleProps}
+                                                    className="flex items-centerrounded"
+                                                >
+                                                    <input
+                                                        type="text"
+                                                        value={task.title}
+                                                        onChange={(e) => handleTaskChange(index, e)}
+                                                        className="w-full p-2 border border-darkgray rounded text-base"
+                                                        placeholder={`Task ${index + 1}`}
+                                                        required
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveTask(index)}
+                                                        className="ml-3 p-2 bg-offblack hover:bg-darkgray text-white rounded text-base"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </li>
+                                            )}
+                                        </Draggable>
+                                    ))}
+                                    {provided.placeholder}
+                                </ul>
+                            )}
+                        </Droppable>
+                    </DragDropContext>
                 </div>
+
+                <div className="w-full flex justify-end mb-6">
+                    <input
+                        type="text"
+                        value={newTaskTitle}
+                        onChange={(e) => setNewTaskTitle(e.target.value)}
+                        className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
+                        placeholder="New Task Title"
+                    />
+                </div>
+
+                <button
+                    type="button"
+                    onClick={handleAddTask}
+                    className="w-full p-2 bg-offblack hover:bg-darkgray text-offwhite rounded shadow-lg text-base mb-3"
+                >
+                    Add Task
+                </button>
 
                 <button
                     type="submit"
