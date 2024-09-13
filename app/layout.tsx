@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Sidebar from "@/app/components/ui/Sidebar/Sidebar";
 import SessionProviderWrapper from "@/app/components/SessionProviderWrapper";
+import LiveClockUpdate from "@/app/components/ui/LiveClockUpdate/LiveClockUpdate";
+
 
 export const metadata: Metadata = {
     title: "Checkmate",
@@ -19,6 +21,7 @@ export default function RootLayout({
         <body className="bg-lightgray">
         <SessionProviderWrapper>
             <Sidebar />
+            <LiveClockUpdate />
             {children}
         </SessionProviderWrapper>
         </body>
