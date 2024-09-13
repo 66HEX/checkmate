@@ -1,7 +1,27 @@
+"use client";
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 export default function Tasks() {
+    const { data: session, status } = useSession();
+    const router = useRouter();
 
+    useEffect(() => {
+        if (status === "loading") {
+            // Wait until the session status is determined
+            return;
+        }
+
+        // Redirect to home if user is not authenticated
+        if (!session) {
+            router.push('/');
+        }
+    }, [session, status, router]);
+
+    // Placeholder data
     const projects = [
         {
             id: 1,
@@ -30,6 +50,11 @@ export default function Tasks() {
             ],
         },
     ];
+
+    // Return null or a loading spinner while checking session
+    if (status === "loading") {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-JetBrainsMono p-4 md:p-8 lg:p-12 xl:p-16">

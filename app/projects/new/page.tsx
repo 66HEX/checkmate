@@ -1,13 +1,29 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 
 export default function NewProjectForm() {
-    const [projectTitle, setProjectTitle] = useState('');
-    const [projectDescription, setProjectDescription] = useState('');
-    const [tasks, setTasks] = useState(['']);
+    const [projectTitle, setProjectTitle] = useState<string>('');
+    const [projectDescription, setProjectDescription] = useState<string>('');
+    const [tasks, setTasks] = useState<string[]>(['']);
+    const { data: session, status } = useSession();
+    const router = useRouter();
 
-    const handleTaskChange = (index, event) => {
+    useEffect(() => {
+        if (status === "loading") {
+            // Wait until the session status is determined
+            return;
+        }
+
+        // Redirect to home if user is not authenticated
+        if (!session) {
+            router.push('/');
+        }
+    }, [session, status, router]);
+
+    const handleTaskChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const newTasks = [...tasks];
         newTasks[index] = event.target.value;
         setTasks(newTasks);
@@ -17,14 +33,14 @@ export default function NewProjectForm() {
         setTasks([...tasks, '']);
     };
 
-    const handleRemoveTask = (index) => {
+    const handleRemoveTask = (index: number) => {
         const newTasks = tasks.filter((_, i) => i !== index);
         setTasks(newTasks);
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        // Tutaj można dodać kod do obsługi wysyłania formularza
+        // Handle form submission logic here
         console.log('Project Title:', projectTitle);
         console.log('Project Description:', projectDescription);
         console.log('Tasks:', tasks);
@@ -55,7 +71,7 @@ export default function NewProjectForm() {
                         value={projectDescription}
                         onChange={(e) => setProjectDescription(e.target.value)}
                         className="w-full p-2 border border-lightgray rounded focus:outline-none focus:border-bluecustom"
-                        rows="3"
+                        rows={3}  // Ensure this is a number
                         required
                     />
                 </div>

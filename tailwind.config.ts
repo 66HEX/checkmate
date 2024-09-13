@@ -16,12 +16,12 @@ const config: Config = {
         offwhite: '#f7f7f7',
         lightgray: '#d1d1d1',
         darkgray: '#444444',
-        bluecustom: '#3498db',
-        bluehover: '#2980b9',
-        greencustom: '#2a9d8f',
-        greenhover: '#238c77',
-        redcustom: '#e74c3c', // Add your custom red color
-        redhover: '#c0392b',  // Add your custom red hover color
+        bluecustom: '#5b8fd8', // More subtle blue
+        bluehover: '#4682b4',  // More subtle blue hover
+        greencustom: '#4a9a8e', // More subtle green
+        greenhover: '#3b8f77', // More subtle green hover
+        redcustom: '#c0392b',   // More subtle red
+        redhover: '#a03b2b',    // More subtle red hover
       },
     },
   },
