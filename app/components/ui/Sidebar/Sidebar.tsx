@@ -79,7 +79,7 @@ export default function Sidebar() {
                         {session ? (
                             <button
                                 onClick={() => signOut()}
-                                className="w-full bg-warning hover:bg-warninghover text-offwhite p-2 rounded transition-all shadow-lg flex items-center justify-between text-lg"
+                                className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 rounded transition-all shadow-lg flex items-center justify-between text-lg"
                             >
                                 <span>Log Out</span>
                                 <ArrowIcon className="h-6 w-6"/>
@@ -87,7 +87,7 @@ export default function Sidebar() {
                         ) : (
                             <Link href="/login" onClick={closeSidebar}>
                                 <button
-                                    className="w-full bg-brand hover:bg-brandhover text-offwhite p-2 rounded transition-all shadow-lg flex items-center justify-between text-lg"
+                                    className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 rounded transition-all shadow-lg flex items-center justify-between text-lg"
                                 >
                                     <span>Log In</span>
                                     <ArrowIcon className="h-6 w-6"/>

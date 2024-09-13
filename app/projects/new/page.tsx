@@ -1,4 +1,5 @@
 "use client";
+
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -66,10 +67,12 @@ export default function NewProjectForm() {
 
             const projectId = project.id;
 
-            const taskInserts = tasks.map(task => ({
+            // Create an array of tasks with the 'order' field
+            const taskInserts = tasks.map((task, index) => ({
                 project_id: projectId,
                 title: task,
-                status: 'uncompleted'
+                status: 'uncompleted',
+                order: index + 1 // Set the order based on index
             }));
 
             const { error: tasksError } = await supabase
@@ -102,7 +105,7 @@ export default function NewProjectForm() {
                         type="text"
                         value={projectTitle}
                         onChange={(e) => setProjectTitle(e.target.value)}
-                        className="w-full p-2 bg-lightgray rounded focus:outline-none text-base"
+                        className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                         required
                         placeholder={`Project Title`}
                     />
@@ -113,14 +116,14 @@ export default function NewProjectForm() {
                     <textarea
                         value={projectDescription}
                         onChange={(e) => setProjectDescription(e.target.value)}
-                        className="w-full p-2 bg-lightgray rounded focus:outline-none text-base"
+                        className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                         rows={2}
                         required
                         placeholder={`Project Description`}
                     />
                 </div>
 
-                <div className="mb-6">
+                <div className="mb-3">
                     <label className="block text-darkgray text-base mb-2">Tasks</label>
                     {tasks.map((task, index) => (
                         <div key={index} className="flex items-center mb-3">
@@ -128,14 +131,14 @@ export default function NewProjectForm() {
                                 type="text"
                                 value={task}
                                 onChange={(e) => handleTaskChange(index, e)}
-                                className="w-full p-2 bg-lightgray rounded focus:outline-none text-base"
+                                className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                                 placeholder={`Task ${index + 1}`}
                                 required
                             />
                             <button
                                 type="button"
                                 onClick={() => handleRemoveTask(index)}
-                                className="ml-3 p-2 bg-warning hover:bg-warninghover text-white rounded text-base"
+                                className="ml-3 p-2 bg-offblack hover:bg-darkgray text-white rounded text-base"
                             >
                                 Remove
                             </button>
@@ -145,7 +148,7 @@ export default function NewProjectForm() {
                         <button
                             type="button"
                             onClick={handleAddTask}
-                            className="mt-2 w-full p-2 bg-success hover:bg-successhover text-white rounded text-base"
+                            className="mt-2 w-full p-2 bg-offblack hover:bg-darkgray text-white rounded text-base"
                         >
                             Add Task
                         </button>
@@ -154,7 +157,7 @@ export default function NewProjectForm() {
 
                 <button
                     type="submit"
-                    className="w-full p-2 bg-brand hover:bg-brandhover text-offwhite rounded shadow-lg text-base"
+                    className="w-full p-2 bg-offblack hover:bg-darkgray text-offwhite rounded shadow-lg text-base"
                 >
                     Save Project
                 </button>

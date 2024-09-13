@@ -64,7 +64,7 @@ const RegisterPage = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                             placeholder={`example@gmail.com`}
                         />
                     </div>
@@ -76,7 +76,7 @@ const RegisterPage = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                             placeholder={`Password`}
                         />
                     </div>
@@ -88,14 +88,14 @@ const RegisterPage = () => {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                             placeholder={`Confirm Password`}
                         />
                     </div>
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-brand hover:bg-brandhover text-offwhite p-2 text-lg rounded transition-all shadow-lg flex items-center justify-center"
+                        className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
                     >
                         {loading ? 'Registering...' : 'Register'}
                     </button>
@@ -104,7 +104,7 @@ const RegisterPage = () => {
                     <p className="text-darkgray text-base mb-2">Already have an account?</p>
                     <Link href="/login">
                         <button
-                            className="w-full bg-success hover:bg-successhover text-offwhite p-2 text-lg rounded transition-all shadow-lg flex items-center justify-center"
+                            className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
                         >
                             Log In
                         </button>

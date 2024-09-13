@@ -40,7 +40,7 @@ const LoginPage = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                             placeholder={`example@gmail.com`}
                         />
                     </div>
@@ -52,14 +52,14 @@ const LoginPage = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full p-2 text-offblack bg-lightgray rounded focus:outline-none text-base"
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                             placeholder={`Password`}
                         />
                     </div>
                     {error && <p className="text-warning text-base text-center mb-4">{error}</p>}
                     <button
                         type="submit"
-                        className="w-full bg-brand hover:bg-brandhover text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
+                        className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
                     >
                         Log In
                     </button>
@@ -67,7 +67,7 @@ const LoginPage = () => {
                 <div className="text-center mt-4">
                     <p className="text-darkgray text-base mb-2">Don&apos;t have an account?</p>
                     <Link href="/register">
-                        <button className="w-full bg-success hover:bg-successhover text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center">
+                        <button className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center">
                             Create Account
                         </button>
                     </Link>

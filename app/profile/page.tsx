@@ -100,7 +100,7 @@ export default function Profile() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-brand hover:bg-brandhover text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
+                        className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
                     >
                         {loading ? "Updating..." : "Update Password"}
                     </button>
