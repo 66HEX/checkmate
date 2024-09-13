@@ -39,8 +39,12 @@ const RegisterPage = () => {
             setPassword('');
             setConfirmPassword('');
             router.push('/login');
-        } catch (error: any) {
-            setError(error.message);
+        } catch (error: unknown) {
+            if (error instanceof Error) {
+                setError(error.message);
+            } else {
+                setError('An unexpected error occurred');
+            }
         } finally {
             setLoading(false);
         }
