@@ -18,7 +18,7 @@ const RegisterPage = () => {
     };
 
     return (
-        <div className="flex items-center justify-center h-screen text-offblack font-JetBrainsMono">
+        <div className="flex items-center justify-center h-screen w-screen text-offblack font-JetBrainsMono p-4 md:p-8 lg:p-12 xl:p-16">
             <div className="w-full max-w-md p-8 bg-offwhite rounded-lg shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
                 <form onSubmit={handleRegister}>
@@ -30,7 +30,7 @@ const RegisterPage = () => {
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
-                            className="w-full p-2 bg-offwhite text-offblack border border-darkgray rounded"
+                            className="w-full p-2 bg-offwhite text-offblack border border-lightgray rounded focus:outline-none focus:border-bluecustom"
                         />
                     </div>
                     <div className="mb-4">
@@ -41,7 +41,7 @@ const RegisterPage = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
-                            className="w-full p-2 bg-offwhite text-offblack border border-darkgray rounded"
+                            className="w-full p-2 bg-offwhite text-offblack border border-lightgray rounded focus:outline-none focus:border-bluecustom"
                         />
                     </div>
                     <div className="mb-6">
@@ -53,7 +53,7 @@ const RegisterPage = () => {
                             value={confirmPassword}
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
-                            className="w-full p-2 bg-offwhite text-offblack border border-darkgray rounded"
+                            className="w-full p-2 bg-offwhite text-offblack border border-lightgray rounded focus:outline-none focus:border-bluecustom"
                         />
                     </div>
                     <button

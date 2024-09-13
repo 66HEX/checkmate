@@ -12,14 +12,16 @@ const config: Config = {
         JetBrainsMono: ['"JetBrains Mono"', 'monospace'],
       },
       colors: {
-        offblack: '#333333',  // Nowe tło (czarny)
-        offwhite: '#f7f7f7',  // Nowy tekst (biały)
-        lightgray: '#d1d1d1',  // Zachowano, ale można zmienić#d1d1d1
-        darkgray: '#2c2c2c', // Zachowano, ale można zmienić
-        bluecustom: '#3498db', // Nowy akcent
-        bluehover: '#2980b9', // Nowy hover
-        greencustom: '#2a9d8f', // Zielony kolor
-        greenhover: '#238c77', // Zielony kolor hover (mniejsza różnica)
+        offblack: '#333333',
+        offwhite: '#f7f7f7',
+        lightgray: '#d1d1d1',
+        darkgray: '#444444',
+        bluecustom: '#3498db',
+        bluehover: '#2980b9',
+        greencustom: '#2a9d8f',
+        greenhover: '#238c77',
+        redcustom: '#e74c3c', // Add your custom red color
+        redhover: '#c0392b',  // Add your custom red hover color
       },
     },
   },

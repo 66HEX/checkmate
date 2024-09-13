@@ -13,24 +13,22 @@ const authOptions: NextAuthOptions = {
         CredentialsProvider({
             name: "Credentials",
             credentials: {
-                username: { label: "Login", type: "text" },
+                email: { label: "Email", type: "text" },
                 password: { label: "Password", type: "password" }
             },
             authorize: async (credentials) => {
                 if (!credentials) {
-                    console.error('No credentials provided');
                     return null;
                 }
 
-                const { username, password } = credentials;
+                const { email, password } = credentials;
 
                 const { data: user, error: loginError } = await supabase.auth.signInWithPassword({
-                    email: username,
-                    password: password,
+                    email,
+                    password,
                 });
 
                 if (loginError || !user) {
-                    console.error('Error logging in:', loginError?.message || 'No user found');
                     return null;
                 }
 
@@ -39,12 +37,12 @@ const authOptions: NextAuthOptions = {
         })
     ],
     pages: {
-        signIn: '/app/admin/login',
+        signIn: '/app/login',
         signOut: '/',
     },
     callbacks: {
         async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-            return url.startsWith(baseUrl) ? url : `${baseUrl}/app/admin/dashboard`;
+            return url.startsWith(baseUrl) ? url : `${baseUrl}/app/`;
         }
     }
 };
