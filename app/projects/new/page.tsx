@@ -97,29 +97,31 @@ export default function NewProjectForm() {
                 <h1 className="text-3xl font-bold mb-6 text-offblack text-center">Add New Project</h1>
 
                 <div className="mb-6">
-                    <label className="block text-darkgray text-sm mb-2">Project Title</label>
+                    <label className="block text-darkgray text-base mb-2">Project Title</label>
                     <input
                         type="text"
                         value={projectTitle}
                         onChange={(e) => setProjectTitle(e.target.value)}
                         className="w-full p-2 bg-lightgray rounded focus:outline-none text-base"
                         required
+                        placeholder={`Project Title`}
                     />
                 </div>
 
                 <div className="mb-6">
-                    <label className="block text-darkgray text-sm mb-2">Project Description</label>
+                    <label className="block text-darkgray text-base mb-2">Project Description</label>
                     <textarea
                         value={projectDescription}
                         onChange={(e) => setProjectDescription(e.target.value)}
                         className="w-full p-2 bg-lightgray rounded focus:outline-none text-base"
                         rows={2}
                         required
+                        placeholder={`Project Description`}
                     />
                 </div>
 
                 <div className="mb-6">
-                    <label className="block text-darkgray text-sm mb-2">Tasks</label>
+                    <label className="block text-darkgray text-base mb-2">Tasks</label>
                     {tasks.map((task, index) => (
                         <div key={index} className="flex items-center mb-3">
                             <input

@@ -33,7 +33,7 @@ const LoginPage = () => {
                 <h1 className="text-2xl font-bold mb-6 text-center text-offblack">Login</h1>
                 <form onSubmit={handleLogin}>
                     <div className="mb-4">
-                        <label htmlFor="email" className="block text-sm mb-2 text-darkgray">Email</label>
+                        <label htmlFor="email" className="block text-base mb-2 text-darkgray">Email</label>
                         <input
                             type="email"
                             id="email"
@@ -45,7 +45,7 @@ const LoginPage = () => {
                         />
                     </div>
                     <div className="mb-6">
-                        <label htmlFor="password" className="block text-sm mb-2 text-darkgray ">Password</label>
+                        <label htmlFor="password" className="block text-base mb-2 text-darkgray ">Password</label>
                         <input
                             type="password"
                             id="password"
@@ -56,7 +56,7 @@ const LoginPage = () => {
                             placeholder={`Password`}
                         />
                     </div>
-                    {error && <p className="text-warning text-sm text-center mb-4">{error}</p>}
+                    {error && <p className="text-warning text-base text-center mb-4">{error}</p>}
                     <button
                         type="submit"
                         className="w-full bg-brand hover:bg-brandhover text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
@@ -65,7 +65,7 @@ const LoginPage = () => {
                     </button>
                 </form>
                 <div className="text-center mt-4">
-                    <p className="text-darkgray text-sm mb-2">Don&apos;t have an account?</p>
+                    <p className="text-darkgray text-base mb-2">Don&apos;t have an account?</p>
                     <Link href="/register">
                         <button className="w-full bg-success hover:bg-successhover text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center">
                             Create Account

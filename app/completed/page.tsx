@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -23,25 +23,12 @@ export default function Completed() {
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    useEffect(() => {
-        if (status === "loading") {
-            return;
-        }
-
-        if (!session) {
-            router.push('/');
-            return;
-        }
-
-        fetchProjects();
-    }, [session, status, router]);
-
-    const fetchProjects = async () => {
+    const fetchProjects = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('projects')
                 .select(`id, title, description, tasks (id, status)`)
-                .eq('user_email', session?.user?.email); // Filter projects by the current user's email
+                .eq('user_email', session?.user?.email);
 
             if (error) {
                 throw error;
@@ -56,7 +43,20 @@ export default function Completed() {
         } catch (error) {
             console.error('Error fetching projects:', error);
         }
-    };
+    }, [session?.user?.email]);
+
+    useEffect(() => {
+        if (status === "loading") {
+            return;
+        }
+
+        if (!session) {
+            router.push('/');
+            return;
+        }
+
+        fetchProjects();
+    }, [session, status, router, fetchProjects]);
 
     if (status === "loading") {
         return <div className="p-4 text-center">Loading projects...</div>;

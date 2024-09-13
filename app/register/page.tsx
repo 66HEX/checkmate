@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { supabase } from '@/app/utils/supabaseClient';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon"; // Assuming you have this component
 
 const RegisterPage = () => {
     const [email, setEmail] = useState<string>('');
@@ -54,7 +53,7 @@ const RegisterPage = () => {
                 {error && <p className="text-warning mb-4 text-center">{error}</p>}
                 <form onSubmit={handleRegister}>
                     <div className="mb-4">
-                        <label htmlFor="email" className="block text-sm mb-2">Email</label>
+                        <label htmlFor="email" className="block text-base mb-2">Email</label>
                         <input
                             type="email"
                             id="email"
@@ -66,7 +65,7 @@ const RegisterPage = () => {
                         />
                     </div>
                     <div className="mb-4">
-                        <label htmlFor="password" className="block text-sm mb-2">Password</label>
+                        <label htmlFor="password" className="block text-base mb-2">Password</label>
                         <input
                             type="password"
                             id="password"
@@ -78,7 +77,7 @@ const RegisterPage = () => {
                         />
                     </div>
                     <div className="mb-6">
-                        <label htmlFor="confirmPassword" className="block text-sm mb-2">Confirm Password</label>
+                        <label htmlFor="confirmPassword" className="block text-base mb-2">Confirm Password</label>
                         <input
                             type="password"
                             id="confirmPassword"
@@ -98,7 +97,7 @@ const RegisterPage = () => {
                     </button>
                 </form>
                 <div className="text-center mt-4">
-                    <p className="text-darkgray text-sm mb-2">Already have an account?</p>
+                    <p className="text-darkgray text-base mb-2">Already have an account?</p>
                     <Link href="/login">
                         <button
                             className="w-full bg-success hover:bg-successhover text-offwhite p-2 text-lg rounded transition-all shadow-lg flex items-center justify-center"

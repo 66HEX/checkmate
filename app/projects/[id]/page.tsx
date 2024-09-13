@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import { supabase } from '@/app/utils/supabaseClient'; // Ensure this points to your Supabase client
+import { supabase } from '@/app/utils/supabaseClient';
 
 interface Task {
     id: number;
@@ -15,13 +15,13 @@ interface Project {
     id: number;
     title: string;
     description: string;
-    user_email: string; // Email of the project owner
+    user_email: string;
     tasks: Task[];
 }
 
 interface PageProps {
     params: {
-        id: string; // ID from the URL
+        id: string;
     };
 }
 
@@ -31,20 +31,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     const router = useRouter();
     const projectId = params.id;
 
-    useEffect(() => {
-        if (status === "loading") {
-            return;
-        }
-
-        if (!session) {
-            router.push('/');
-            return;
-        }
-
-        fetchProject();
-    }, [session, status, router]);
-
-    const fetchProject = async () => {
+    const fetchProject = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('projects')
@@ -61,7 +48,20 @@ export default function ProjectDetailPage({ params }: PageProps) {
         } catch (error) {
             console.error('Error fetching project:', error);
         }
-    };
+    }, [projectId, router]);
+
+    useEffect(() => {
+        if (status === "loading") {
+            return;
+        }
+
+        if (!session) {
+            router.push('/');
+            return;
+        }
+
+        fetchProject();
+    }, [session, status, router, fetchProject]);
 
     const toggleTaskStatus = async (taskId: number, currentStatus: 'completed' | 'uncompleted') => {
         const newStatus = currentStatus === 'completed' ? 'uncompleted' : 'completed';
@@ -78,7 +78,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
             setProject(prev => {
                 if (!prev) return null;
 
-                // Ensure `tasks` is correctly typed as an array of `Task`
                 const updatedTasks: Task[] = prev.tasks.map(task =>
                     task.id === taskId ? { ...task, status: newStatus } : task
                 );

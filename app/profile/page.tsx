@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { supabase } from "@/app/utils/supabaseClient"; // Ensure this import is correct
+import { supabase } from "@/app/utils/supabaseClient";
 
 export default function Profile() {
     const { data: session, status } = useSession();
@@ -56,7 +56,7 @@ export default function Profile() {
             <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Profile</h1>
                 <div className="mb-4">
-                    <label htmlFor="email" className="block text-sm mb-2">Email</label>
+                    <label htmlFor="email" className="block text-base mb-2">Email</label>
                     <input
                         type="email"
                         id="email"
@@ -68,7 +68,7 @@ export default function Profile() {
 
                 <form onSubmit={handlePasswordChange}>
                     <div className="mb-4">
-                        <label htmlFor="newPassword" className="block text-sm mb-2">New Password</label>
+                        <label htmlFor="newPassword" className="block text-base mb-2">New Password</label>
                         <input
                             type="password"
                             id="newPassword"
@@ -81,7 +81,7 @@ export default function Profile() {
                     </div>
 
                     <div className="mb-6">
-                        <label htmlFor="confirmPassword" className="block text-sm mb-2">Confirm New Password</label>
+                        <label htmlFor="confirmPassword" className="block text-base mb-2">Confirm New Password</label>
                         <input
                             type="password"
                             id="confirmPassword"
@@ -94,7 +94,7 @@ export default function Profile() {
                     </div>
 
                     {error && (
-                        <p className="text-warning text-center mb-4 text-sm">{error}</p>
+                        <p className="text-warning text-center mb-4 text-base">{error}</p>
                     )}
 
                     <button
