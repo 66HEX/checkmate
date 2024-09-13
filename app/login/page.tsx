@@ -46,7 +46,7 @@ const LoginPage = () => {
                     </button>
                 </form>
                 <div className="text-center mt-4">
-                    <p className="text-darkgray mb-2">Don't have an account?</p>
+                    <p className="text-darkgray mb-2">Don&apos;t have an account?</p>
                     <a href="/register">
                         <button className="w-full bg-greencustom hover:bg-greenhover text-offwhite p-3 rounded transition-all shadow-lg">
                             Create Account
