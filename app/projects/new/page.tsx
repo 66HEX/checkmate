@@ -92,7 +92,7 @@ export default function NewProjectForm() {
         <div className="w-screen min-h-screen flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
             <form
                 onSubmit={handleSubmit}
-                className="bg-offwhite p-8 rounded-lg shadow-lg w-full max-w-lg mt-16 md:mt-0"
+                className="bg-offwhite p-8 rounded-lg shadow-lg w-full max-w-lg"
             >
                 <h1 className="text-3xl font-bold mb-6 text-offblack text-center">Add New Project</h1>
 
