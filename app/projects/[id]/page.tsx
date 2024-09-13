@@ -288,6 +288,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                 <input
                                     type="text"
                                     value={task.title}
+                                    placeholder={`Task ${index + 1}`}
                                     onChange={(e) => {
                                         const updatedTasks = [...editTasks];
                                         updatedTasks[index].title = e.target.value;
