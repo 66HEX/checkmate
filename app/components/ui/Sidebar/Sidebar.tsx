@@ -21,7 +21,7 @@ export default function Sidebar() {
         <>
             <button
                 onClick={toggleSidebar}
-                className="fixed top-4 left-4 z-50 p-3 bg-brand text-offwhite rounded-lg shadow-lg xl:hidden"
+                className="fixed top-4 left-4 z-50 p-3 bg-offblack text-offwhite rounded-lg shadow-lg xl:hidden"
             >
                 {isOpen ? <FaTimes className="w-6 h-6" /> : <FaBars className="w-6 h-6" />}
             </button>
