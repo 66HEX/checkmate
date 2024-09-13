@@ -74,9 +74,6 @@ export default function Completed() {
                         <div className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between">
                             <div>
                                 <h3 className="text-2xl font-bold mb-3">{project.title}</h3>
-                                <p className="text-base text-darkgray mb-4">
-                                    {project.description}
-                                </p>
                             </div>
                             <div className="mt-4">
                                 <p className="text-base text-gray-500 mb-1">
