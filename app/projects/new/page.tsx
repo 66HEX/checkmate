@@ -89,7 +89,7 @@ export default function NewProjectForm() {
     };
 
     return (
-        <div className="w-screen min-h-screen flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
+        <div className="w-screen min-h-svh flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
             <form
                 onSubmit={handleSubmit}
                 className="bg-offwhite p-8 rounded-lg shadow-lg w-full max-w-lg"
