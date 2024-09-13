@@ -19,7 +19,7 @@ export default function Home() {
     const isAuthenticated = status === "authenticated";
 
     return (
-        <div className="w-screen h-screen flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
+        <div className="w-screen h-svh flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
             <h1 className="text-6xl md:text-9xl text-offwhite font-bold  mb-6 text-center">
                 Welcome to <span className="text-brand">CHECKMATE</span>
             </h1>
