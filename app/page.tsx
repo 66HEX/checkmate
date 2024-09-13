@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
-import LiveClockUpdate from "@/app/components/ui/LiveClockUpdate/LiveClockUpdate";
 
 
 export default function Home() {

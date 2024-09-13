@@ -10,20 +10,20 @@ const config: Config = {
     extend: {
       fontFamily: {
         JetBrainsMono: ['"JetBrains Mono"', 'monospace'],
-        NeueMontreal: ['"Neue Montreal"', 'sans serif'],
+        NeueMontreal: ['"Neue Montreal"', 'sans-serif'],
       },
       colors: {
         offblack: '#3a3a3a',     // Text Color
-        offwhite: '#ffffff',     // Sidebar Color
-        lightgray: '#d1d1d1',    // Background Color
-        gray: '#f0f0f0',         // Projects Hover Color
-        darkgray: '#585858',     // Dark Grey Text Color
+        offwhite: '#ffffff',     // Background Color
+        lightgray: '#d1d1d1',    // Light Gray Color
+        gray: '#f0f0f0',         // Gray Color
+        darkgray: '#585858',     // Dark Gray Color
         brand: '#007bff',        // Blue Color
-        brandhover: '#0056b3',   // Blue Hover Color
+        brandhover: '#0056d2',   // Slightly darker blue
         success: '#4caf50',      // Green Color
-        successhover: '#388e3c', // Green Hover Color
+        successhover: '#388e3c', // Slightly darker green
         warning: '#ff5722',      // Red Color
-        warninghover: '#e64a19', // Red Hover Color
+        warninghover: '#e64a19', // Slightly darker red
       },
     },
   },
