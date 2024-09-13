@@ -57,7 +57,7 @@ const RegisterPage = () => {
                 {error && <p className="text-warning mb-3 text-center">{error}</p>}
                 <form onSubmit={handleRegister}>
                     <div className="mb-3">
-                        <label htmlFor="email" className="block text-base">Email</label>
+                        <label htmlFor="email" className="block text-base mb-1">Email</label>
                         <input
                             type="email"
                             id="email"
@@ -69,7 +69,7 @@ const RegisterPage = () => {
                         />
                     </div>
                     <div className="mb-3">
-                        <label htmlFor="password" className="block text-base">Password</label>
+                        <label htmlFor="password" className="block text-base mb-1">Password</label>
                         <input
                             type="password"
                             id="password"
@@ -81,7 +81,7 @@ const RegisterPage = () => {
                         />
                     </div>
                     <div className="mb-6">
-                        <label htmlFor="confirmPassword" className="block text-base">Confirm Password</label>
+                        <label htmlFor="confirmPassword" className="block text-base mb-1">Confirm Password</label>
                         <input
                             type="password"
                             id="confirmPassword"

@@ -55,8 +55,8 @@ export default function Profile() {
         <div className="flex items-center justify-center h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
             <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Profile</h1>
-                <div className="mb-4">
-                    <label htmlFor="email" className="block text-base mb-2">Email</label>
+                <div className="mb-3">
+                    <label htmlFor="email" className="block text-base mb-1">Email</label>
                     <input
                         type="email"
                         id="email"
@@ -67,8 +67,8 @@ export default function Profile() {
                 </div>
 
                 <form onSubmit={handlePasswordChange}>
-                    <div className="mb-4">
-                        <label htmlFor="newPassword" className="block text-base mb-2">New Password</label>
+                    <div className="mb-3">
+                        <label htmlFor="newPassword" className="block text-base mb-1">New Password</label>
                         <input
                             type="password"
                             id="newPassword"
@@ -81,7 +81,7 @@ export default function Profile() {
                     </div>
 
                     <div className="mb-6">
-                        <label htmlFor="confirmPassword" className="block text-base mb-2">Confirm New Password</label>
+                        <label htmlFor="confirmPassword" className="block text-base mb-1">Confirm New Password</label>
                         <input
                             type="password"
                             id="confirmPassword"
@@ -94,7 +94,7 @@ export default function Profile() {
                     </div>
 
                     {error && (
-                        <p className="text-warning text-center mb-4 text-base">{error}</p>
+                        <p className="text-warning text-center mb-3 text-base">{error}</p>
                     )}
 
                     <button

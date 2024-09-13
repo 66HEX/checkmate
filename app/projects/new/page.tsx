@@ -161,8 +161,8 @@ export default function NewProjectForm() {
             >
                 <h1 className="text-3xl font-bold mb-6 text-offblack text-center">Add New Project</h1>
 
-                <div className="mb-6">
-                    <label className="block text-darkgray text-base mb-2">Project Title</label>
+                <div className="mb-3">
+                    <label className="block text-darkgray text-base mb-1">Project Title</label>
                     <input
                         type="text"
                         value={projectTitle}
@@ -173,8 +173,8 @@ export default function NewProjectForm() {
                     />
                 </div>
 
-                <div className="mb-6">
-                    <label className="block text-darkgray text-base mb-2">Project Description</label>
+                <div className="mb-3">
+                    <label className="block text-darkgray text-base mb-1">Project Description</label>
                     <textarea
                         value={projectDescription}
                         onChange={(e) => setProjectDescription(e.target.value)}
@@ -185,8 +185,8 @@ export default function NewProjectForm() {
                     />
                 </div>
 
-                <div className="mb-6">
-                    <label className="block text-darkgray text-base mb-2">Tasks</label>
+                <div className="mb-3">
+                    <label className="block text-darkgray text-base mb-1">Tasks</label>
                     <DragDropContext onDragEnd={handleOnDragEnd}>
                         <Droppable droppableId="tasks">
                             {(provided) => (
