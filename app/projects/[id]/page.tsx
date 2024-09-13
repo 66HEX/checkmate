@@ -266,7 +266,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     }
 
     return (
-        <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16">
+        <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
             <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
                 <p className="text-base mb-6">Owner&apos;s Email: <span className="font-medium text-base">{project.user_email}</span></p>
 
