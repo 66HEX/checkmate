@@ -59,7 +59,7 @@ export default function Completed() {
     }, [session, status, router, fetchProjects]);
 
     if (status === "loading") {
-        return <div className="p-4 text-center">Loading projects...</div>;
+        return <div className="w-screen h-svh flex items-center justify-center font-JetBrainsMono text-offwhite text-2xl">Loading Projects...</div>;
     }
 
     return (

@@ -20,7 +20,7 @@ const LiveClockUpdate: React.FC = () => {
 
     return (
         <div>
-            <p className="fixed top-4 right-4 text-offwhite">
+            <p className="fixed top-4 right-4 text-offwhite text-lg">
                 {date.toLocaleTimeString()}
             </p>
         </div>

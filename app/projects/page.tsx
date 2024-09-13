@@ -59,7 +59,7 @@ export default function Tasks() {
     }, [session, status, router, fetchProjects]);
 
     if (status === "loading") {
-        return <div className="w-screen h-screen flex items-center justify-center font-NeueMontreal text-offblack text-2xl">Loading...</div>;
+        return <div className="w-screen h-svh flex items-center justify-center font-JetBrainsMono text-offwhite text-2xl">Loading...</div>;
     }
 
     return (
