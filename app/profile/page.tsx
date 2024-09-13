@@ -52,7 +52,7 @@ export default function Profile() {
     };
 
     return (
-        <div className="flex items-center justify-center h-screen w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
+        <div className="flex items-center justify-center h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
             <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Profile</h1>
                 <div className="mb-4">
