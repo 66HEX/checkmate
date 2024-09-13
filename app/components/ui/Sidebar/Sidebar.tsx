@@ -7,6 +7,7 @@ import Image from 'next/image';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { useSession, signOut } from 'next-auth/react';
 import logo from '@/public/checkmate.svg';
+import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
 
 export default function Sidebar() {
     const pathname = usePathname();
@@ -18,7 +19,6 @@ export default function Sidebar() {
 
     return (
         <>
-            {/* Hamburger Button */}
             <button
                 onClick={toggleSidebar}
                 className="fixed top-4 left-4 z-50 p-2 bg-bluecustom text-offwhite rounded-md shadow-lg xl:hidden"
@@ -26,7 +26,6 @@ export default function Sidebar() {
                 {isOpen ? <FaTimes className="w-6 h-6" /> : <FaBars className="w-6 h-6" />}
             </button>
 
-            {/* Sidebar */}
             <nav
                 className={`fixed top-0 left-0 z-40 w-64 bg-offwhite text-offblack flex flex-col justify-between p-6 h-screen font-JetBrainsMono shadow-lg transition-transform duration-300 xl:fixed xl:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} xl:block`}
             >
@@ -54,7 +53,6 @@ export default function Sidebar() {
                                 </Link>
                             </li>
 
-                            {/* Render additional links only if user is logged in */}
                             {session && (
                                 <>
                                     <li>
@@ -77,21 +75,22 @@ export default function Sidebar() {
                         </ul>
                     </div>
 
-                    {/* Button to go to the login/logout panel */}
                     <div className="mt-6">
                         {session ? (
                             <button
                                 onClick={() => signOut()}
-                                className="w-full bg-redcustom hover:bg-redhover text-offwhite py-3 px-4 rounded transition-all shadow-lg"
+                                className="w-full bg-redcustom hover:bg-redhover text-offwhite py-4 px-4 rounded transition-all shadow-lg flex items-center justify-between"
                             >
-                                Log Out
+                                <span>Log Out</span>
+                                <ArrowIcon className="h-4 w-4"/>
                             </button>
                         ) : (
                             <Link href="/login" onClick={closeSidebar}>
                                 <button
-                                    className="w-full bg-bluecustom hover:bg-bluehover text-offwhite py-3 px-4 rounded transition-all shadow-lg"
+                                    className="w-full bg-bluecustom hover:bg-bluehover text-offwhite py-4 px-4 rounded transition-all shadow-lg flex items-center justify-between"
                                 >
-                                    Log In
+                                    <span>Log In</span>
+                                    <ArrowIcon className="h-4 w-4"/>
                                 </button>
                             </Link>
                         )}

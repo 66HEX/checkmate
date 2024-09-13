@@ -32,7 +32,11 @@ const authOptions: NextAuthOptions = {
                     return null;
                 }
 
-                return { id: user.user.id, name: user.user.email };
+                // Return all necessary user info, including email
+                return {
+                    id: user.user.id,
+                    email: user.user.email,
+                };
             }
         })
     ],
@@ -43,6 +47,19 @@ const authOptions: NextAuthOptions = {
     callbacks: {
         async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
             return url.startsWith(baseUrl) ? url : `${baseUrl}/app/`;
+        },
+        async session({ session, token }) {
+            if (token?.email) {
+                session.user = session.user || {}; // Ensure user is not undefined
+                session.user.email = token.email as string;
+            }
+            return session;
+        },
+        async jwt({ token }) {
+            if (token.email) {
+                token.email = token.email;
+            }
+            return token;
         }
     }
 };
