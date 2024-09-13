@@ -275,16 +275,16 @@ export default function ProjectDetailPage({ params }: PageProps) {
                             type="text"
                             value={editTitle}
                             onChange={(e) => setEditTitle(e.target.value)}
-                            className="w-full p-2 mb-4 border border-darkgray focus:outline-none rounded text-base"
+                            className="w-full p-2 mb-3 border border-darkgray focus:outline-none rounded text-base"
                         />
                         <textarea
                             value={editDescription}
                             onChange={(e) => setEditDescription(e.target.value)}
-                            className="w-full p-2 mb-4 border border-darkgray focus:outline-none rounded text-base"
+                            className="w-full p-2 mb-6 border border-darkgray focus:outline-none rounded text-base"
                         />
-                        <h2 className="text-2xl font-semibold mb-4">Tasks</h2>
+                        <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
                         {editTasks.map((task, index) => (
-                            <div key={index} className="flex items-center mb-4">
+                            <div key={index} className="flex items-center mb-3">
                                 <input
                                     type="text"
                                     value={task.title}
@@ -304,7 +304,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                 </button>
                             </div>
                         ))}
-                        <div className="flex items-center mb-4">
+                        <div className="flex items-center mb-6">
                             <input
                                 type="text"
                                 value={newTaskTitle}
@@ -334,7 +334,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     </>
                 ) : (
                     <>
-                        <h1 className="text-4xl font-bold mb-4">{project.title}</h1>
+                        <h1 className="text-4xl font-bold mb-3">{project.title}</h1>
                         <p className="text-lg mb-6">{project.description}</p>
                         <button
                             onClick={() => setIsEditing(true)}
@@ -344,11 +344,11 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         </button>
                         <button
                             onClick={handleDelete}
-                            className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
+                            className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-6"
                         >
                             Delete
                         </button>
-                        <h2 className="text-2xl font-semibold mb-4">Tasks</h2>
+                        <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
                         {project.tasks.length > 0 ? (
                             <DragDropContext onDragEnd={handleOnDragEnd}>
                                 <Droppable droppableId="tasks">

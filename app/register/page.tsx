@@ -54,10 +54,10 @@ const RegisterPage = () => {
         <div className="flex items-center justify-center h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
             <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
-                {error && <p className="text-warning mb-4 text-center">{error}</p>}
+                {error && <p className="text-warning mb-3 text-center">{error}</p>}
                 <form onSubmit={handleRegister}>
-                    <div className="mb-4">
-                        <label htmlFor="email" className="block text-base mb-2">Email</label>
+                    <div className="mb-3">
+                        <label htmlFor="email" className="block text-base">Email</label>
                         <input
                             type="email"
                             id="email"
@@ -68,8 +68,8 @@ const RegisterPage = () => {
                             placeholder={`example@gmail.com`}
                         />
                     </div>
-                    <div className="mb-4">
-                        <label htmlFor="password" className="block text-base mb-2">Password</label>
+                    <div className="mb-3">
+                        <label htmlFor="password" className="block text-base">Password</label>
                         <input
                             type="password"
                             id="password"
@@ -81,7 +81,7 @@ const RegisterPage = () => {
                         />
                     </div>
                     <div className="mb-6">
-                        <label htmlFor="confirmPassword" className="block text-base mb-2">Confirm Password</label>
+                        <label htmlFor="confirmPassword" className="block text-base">Confirm Password</label>
                         <input
                             type="password"
                             id="confirmPassword"
@@ -100,8 +100,8 @@ const RegisterPage = () => {
                         {loading ? 'Registering...' : 'Register'}
                     </button>
                 </form>
-                <div className="text-center mt-4">
-                    <p className="text-darkgray text-base mb-2">Already have an account?</p>
+                <div className="text-center mt-3">
+                    <p className="text-darkgray text-base mb-1">Already have an account?</p>
                     <Link href="/login">
                         <button
                             className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"

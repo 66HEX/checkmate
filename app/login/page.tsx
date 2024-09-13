@@ -32,8 +32,8 @@ const LoginPage = () => {
             <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center text-offblack">Login</h1>
                 <form onSubmit={handleLogin}>
-                    <div className="mb-4">
-                        <label htmlFor="email" className="block text-base mb-2 text-darkgray">Email</label>
+                    <div className="mb-3">
+                        <label htmlFor="email" className="block text-base text-darkgray">Email</label>
                         <input
                             type="email"
                             id="email"
@@ -45,7 +45,7 @@ const LoginPage = () => {
                         />
                     </div>
                     <div className="mb-6">
-                        <label htmlFor="password" className="block text-base mb-2 text-darkgray ">Password</label>
+                        <label htmlFor="password" className="block text-base text-darkgray ">Password</label>
                         <input
                             type="password"
                             id="password"
@@ -56,16 +56,16 @@ const LoginPage = () => {
                             placeholder={`Password`}
                         />
                     </div>
-                    {error && <p className="text-warning text-base text-center mb-4">{error}</p>}
+                    {error && <p className="text-warning text-base text-center mb-3">{error}</p>}
                     <button
                         type="submit"
-                        className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
+                        className="w-full mb-6 bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
                     >
                         Log In
                     </button>
                 </form>
-                <div className="text-center mt-4">
-                    <p className="text-darkgray text-base mb-2">Don&apos;t have an account?</p>
+                <div className="text-center">
+                    <p className="text-darkgray text-base mb-1">Don&apos;t have an account?</p>
                     <Link href="/register">
                         <button className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center">
                             Create Account
