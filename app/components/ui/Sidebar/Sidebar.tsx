@@ -78,7 +78,7 @@ export default function Sidebar() {
                 <div className="flex flex-col flex-grow h-full justify-between">
                     <div>
                         {/* Logo */}
-                        <div className="mb-6 flex justify-center">
+                        <div className="mb-3 flex justify-center">
                             <Image
                                 src={logo}
                                 alt="Checkmate Logo"
@@ -88,11 +88,11 @@ export default function Sidebar() {
                             />
                         </div>
 
-                        <div className="mb-8">
+                        <div className="mb-6">
                             <h1 className="font-black uppercase text-3xl text-center">CHECKMATE</h1>
                         </div>
 
-                        <ul className="space-y-4">
+                        <ul className="space-y-2">
                             <li>
                                 <Link href="/" onClick={closeSidebar} className={`p-2 block rounded transition-colors text-lg ${pathname === '/' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
                                     Home
