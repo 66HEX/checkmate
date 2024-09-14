@@ -46,7 +46,7 @@ const authOptions: NextAuthOptions = {
     },
     callbacks: {
         async redirect({ url, baseUrl }: { url: string; baseUrl: string }) {
-            return url.startsWith(baseUrl) ? url : `${baseUrl}/app/`;
+            return url.startsWith(baseUrl) ? url : `${baseUrl}/`;
         },
         async session({ session, token }) {
             if (token) {

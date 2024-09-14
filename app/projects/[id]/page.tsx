@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
 import { FaCheck, FaTimes } from 'react-icons/fa';
-import { IoIosArrowUp , IoIosArrowDown} from "react-icons/io";
+import { MdOutlineArrowDropUp , MdOutlineArrowDropDown } from "react-icons/md";
 
 interface Task {
     id: number;
@@ -280,21 +280,33 @@ export default function ProjectDetailPage({ params }: PageProps) {
     return (
         <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
             <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
-                <p className="text-base mb-6">Owner&apos;s Email: <span className="font-medium text-base">{project.user_email}</span></p>
+                <p className="text-base mb-6">Project Manager&apos;s Email: <span className="font-medium text-base">{project.user_email}</span></p>
 
                 {isEditing ? (
                     <>
-                        <input
-                            type="text"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            className="w-full p-2 mb-3 border border-darkgray focus:outline-none rounded text-base"
-                        />
-                        <textarea
-                            value={editDescription}
-                            onChange={(e) => setEditDescription(e.target.value)}
-                            className="w-full p-2 mb-6 border border-darkgray focus:outline-none rounded text-base"
-                        />
+                        <div className="mb-3">
+                            <input
+                                type="text"
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                                maxLength={60} // Limit input to 50 characters
+                            />
+                            <span className="text-right text-darkgray text-sm">
+                                {60 - editTitle.length} characters left
+                            </span>
+                        </div>
+                        <div className="mb-6">
+                            <textarea
+                                value={editDescription}
+                                onChange={(e) => setEditDescription(e.target.value)}
+                                className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                                maxLength={500} // Limit input to 350 characters
+                            />
+                            <span className="text-right text-darkgray text-sm">
+                                {500 - editDescription.length} characters left
+                            </span>
+                        </div>
                         <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
                         {editTasks.map((task, index) => (
                             <div key={index} className="flex items-center mb-3">
@@ -313,22 +325,22 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     <div className="flex flex-row items-center justify-center ml-2">
                                         <button
                                             onClick={() => handleDeleteTask(task.id)}
-                                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded mr-1"
+                                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded mr-0.5"
                                         >
                                             Remove
                                         </button>
-                                        <div className="space-y-1 flex flex-col">
+                                        <div className="flex flex-col">
                                             <button
                                                 onClick={() => handleTaskOrderChange(index, 'up')}
-                                                className="bg-offblack hover:bg-darkgray text-offwhite rounded "
+                                                className="bg-offblack hover:bg-darkgray text-offwhite rounded p-0.5 mb-0.5"
                                             >
-                                                <IoIosArrowUp />
+                                                <MdOutlineArrowDropUp />
                                             </button>
                                             <button
                                                 onClick={() => handleTaskOrderChange(index, 'down')}
-                                                className="bg-offblack hover:bg-darkgray text-offwhite rounded"
+                                                className="bg-offblack hover:bg-darkgray text-offwhite rounded p-0.5"
                                             >
-                                                <IoIosArrowDown />
+                                                <MdOutlineArrowDropDown />
                                             </button>
                                         </div>
                                     </div>

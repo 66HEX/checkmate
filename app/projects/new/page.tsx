@@ -1,6 +1,5 @@
 "use client";
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
@@ -18,12 +17,12 @@ export default function NewProjectForm() {
     const [projectDescription, setProjectDescription] = useState<string>('');
     const [tasks, setTasks] = useState<Task[]>([]);
     const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [projectTitleLength, setProjectTitleLength] = useState<number>(0);
+    const [projectDescriptionLength, setProjectDescriptionLength] = useState<number>(0);
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    const fetchInitialTasks = useCallback(() => {
-        setTasks([{ title: '', status: 'uncompleted', order: 1 }]);
-    }, []);
+
 
     useEffect(() => {
         if (status === "loading") {
@@ -35,8 +34,16 @@ export default function NewProjectForm() {
             return;
         }
 
-        fetchInitialTasks();
-    }, [session, status, router, fetchInitialTasks]);
+
+    }, [session, status, router]);
+
+    useEffect(() => {
+        setProjectTitleLength(projectTitle.length);
+    }, [projectTitle]);
+
+    useEffect(() => {
+        setProjectDescriptionLength(projectDescription.length);
+    }, [projectDescription]);
 
     const handleTaskChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const updatedTasks = [...tasks];
@@ -169,7 +176,11 @@ export default function NewProjectForm() {
                         className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                         required
                         placeholder={`Project Title`}
+                        maxLength={60}
                     />
+                    <span className="text-right text-darkgray text-sm mt-1">
+                        {60 - projectTitleLength} characters remaining
+                    </span>
                 </div>
 
                 <div className="mb-3">
@@ -178,10 +189,14 @@ export default function NewProjectForm() {
                         value={projectDescription}
                         onChange={(e) => setProjectDescription(e.target.value)}
                         className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
-                        rows={2}
+                        rows={4}
                         required
                         placeholder={`Project Description`}
+                        maxLength={500}
                     />
+                    <span className="text-right text-darkgray text-sm mt-1">
+                        {500 - projectDescriptionLength} characters remaining
+                    </span>
                 </div>
 
                 <div className="mb-3">
@@ -201,7 +216,7 @@ export default function NewProjectForm() {
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
-                                                    className="flex items-centerrounded"
+                                                    className="flex items-center rounded"
                                                 >
                                                     <input
                                                         type="text"
@@ -229,13 +244,14 @@ export default function NewProjectForm() {
                     </DragDropContext>
                 </div>
 
-                <div className="w-full flex justify-end mb-6">
+                <div className="w-full flex flex-col mb-6">
                     <input
                         type="text"
                         value={newTaskTitle}
                         onChange={(e) => setNewTaskTitle(e.target.value)}
                         className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                         placeholder="New Task Title"
+                        maxLength={50} // Limit input to 50 characters
                     />
                 </div>
 

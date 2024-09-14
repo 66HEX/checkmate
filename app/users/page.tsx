@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
@@ -19,6 +19,7 @@ export default function UsersList() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null); // Changed to string | null
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+    const dropdownRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
         if (status === "loading") return;
@@ -102,6 +103,19 @@ export default function UsersList() {
         setOpenDropdown(prevId => (prevId === userId ? null : userId));
     };
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setOpenDropdown(null);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
+
     if (loading) {
         return <div>Loading...</div>;
     }
@@ -139,16 +153,19 @@ export default function UsersList() {
                                         Change Role
                                     </button>
                                     {openDropdown === user.id && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-offwhite border border-darkgray rounded shadow-lg">
+                                        <div
+                                            ref={dropdownRef}
+                                            className="absolute z-30 right-0 mt-2 w-48 text-offblack bg-offwhite border border-darkgray rounded shadow-lg"
+                                        >
                                             <button
                                                 onClick={() => handleRoleChange(user.id, 'admin')}
-                                                className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                                                className="w-full px-4 py-2 text-left hover:bg-lightgray"
                                             >
                                                 Promote to Admin
                                             </button>
                                             <button
                                                 onClick={() => handleRoleChange(user.id, 'worker')}
-                                                className="w-full px-4 py-2 text-left hover:bg-gray-100"
+                                                className="w-full px-4 py-2 text-left hover:bg-lightgray"
                                             >
                                                 Promote to Worker
                                             </button>
