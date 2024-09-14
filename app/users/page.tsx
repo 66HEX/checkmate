@@ -2,15 +2,22 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/utils/supabaseClient";
 
+interface UserProfile {
+    id: string;
+    email: string;
+    role: string;
+}
+
 export default function UsersList() {
-    const { data: session, status } = useSession();
+    const { data: session, status } = useSession() as { data: Session | null; status: string };
     const router = useRouter();
-    const [users, setUsers] = useState<any[]>([]);
+    const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string>("");
+    const [error, setError] = useState<string | null>(null); // Changed to string | null
     const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
     useEffect(() => {
@@ -23,9 +30,9 @@ export default function UsersList() {
 
         const fetchRoleAndUsers = async () => {
             try {
-                const userId = session.user.id;
+                const userId = session?.user?.id ?? '';
 
-                // Fetch the user's role
+                // Fetch the user role
                 const { data: roleData, error: roleError } = await supabase
                     .from('profiles')
                     .select('role')
@@ -34,13 +41,13 @@ export default function UsersList() {
 
                 if (roleError) {
                     console.error("Error fetching user role:", roleError.message);
-                    router.push("/"); // Redirect if there's an error fetching role
+                    router.push("/");
                     return;
                 }
 
                 const role = roleData?.role;
                 if (role !== 'admin') {
-                    router.push("/"); // Redirect if the user is not an admin
+                    router.push("/");
                     return;
                 }
 
@@ -52,13 +59,13 @@ export default function UsersList() {
 
                 if (usersError) {
                     console.error("Error fetching users:", usersError.message);
-                    setError("Error fetching users.");
+                    setError(usersError.message); // Set error message directly
                 } else {
                     setUsers(usersData || []);
                 }
             } catch (error) {
                 console.error("Unexpected error:", error);
-                setError("Unexpected error occurred.");
+                setError("Unexpected error occurred."); // Set a generic error message
             } finally {
                 setLoading(false);
             }
@@ -76,7 +83,7 @@ export default function UsersList() {
 
             if (error) {
                 console.error("Error updating user role:", error.message);
-                setError("Error updating user role.");
+                setError("Error updating user role."); // Set error message directly
             } else {
                 setUsers(prevUsers =>
                     prevUsers.map(user =>
@@ -87,7 +94,7 @@ export default function UsersList() {
             }
         } catch (error) {
             console.error("Unexpected error:", error);
-            setError("Unexpected error occurred.");
+            setError("Unexpected error occurred."); // Set a generic error message
         }
     };
 
@@ -110,7 +117,7 @@ export default function UsersList() {
 
                 <table className="w-full border-collapse">
                     <thead>
-                    <tr className="bg-gray-200">
+                    <tr className="bg-offblack text-offwhite">
                         <th className="border p-2 text-left">ID</th>
                         <th className="border p-2 text-left">Email</th>
                         <th className="border p-2 text-left">Role</th>
@@ -127,12 +134,12 @@ export default function UsersList() {
                                 <td className="border p-2 text-center relative">
                                     <button
                                         onClick={() => toggleDropdown(user.id)}
-                                        className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded"
+                                        className="bg-offblack hover:bg-darkgray text-offwhite px-4 py-2 rounded"
                                     >
                                         Change Role
                                     </button>
                                     {openDropdown === user.id && (
-                                        <div className="absolute right-0 mt-2 w-48 bg-white border border-darkgray rounded shadow-lg">
+                                        <div className="absolute right-0 mt-2 w-48 bg-offwhite border border-darkgray rounded shadow-lg">
                                             <button
                                                 onClick={() => handleRoleChange(user.id, 'admin')}
                                                 className="w-full px-4 py-2 text-left hover:bg-gray-100"

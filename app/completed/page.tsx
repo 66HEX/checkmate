@@ -27,8 +27,7 @@ export default function Completed() {
         try {
             const { data, error } = await supabase
                 .from('projects')
-                .select(`id, title, description, tasks (id, status)`)
-                .eq('user_email', session?.user?.email);
+                .select(`id, title, description, tasks (id, status)`);
 
             if (error) {
                 throw error;
@@ -43,7 +42,7 @@ export default function Completed() {
         } catch (error) {
             console.error('Error fetching projects:', error);
         }
-    }, [session?.user?.email]);
+    }, []);
 
     useEffect(() => {
         if (status === "loading") {

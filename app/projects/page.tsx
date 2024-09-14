@@ -28,12 +28,9 @@ export default function Tasks() {
 
     const fetchProjects = useCallback(async () => {
         try {
-            if (!session?.user?.email) return;
-
             const { data, error } = await supabase
                 .from('projects')
-                .select(`id, title, description, tasks (id, status)`)
-                .eq('user_email', session.user.email);
+                .select(`id, title, description, tasks (id, status)`);
 
             if (error) {
                 throw error;
@@ -47,7 +44,7 @@ export default function Tasks() {
         } catch (error) {
             console.error('Error fetching projects:', error);
         }
-    }, [session?.user?.email]);
+    }, []);
 
     const fetchUserRole = useCallback(async () => {
         try {

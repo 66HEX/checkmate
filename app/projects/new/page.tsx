@@ -141,7 +141,6 @@ export default function NewProjectForm() {
                 throw tasksError;
             }
 
-            alert('Project added successfully!');
             router.push('/projects');
         } catch (error) {
             alert('Failed to add project: ' + (error as Error).message);

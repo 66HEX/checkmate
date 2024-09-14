@@ -279,7 +279,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 throw projectError;
             }
 
-            router.push('/'); // Redirect to the homepage or any other page after deletion
+            router.push('/projects'); // Redirect to the homepage or any other page after deletion
         } catch (error) {
             console.error('Error deleting project:', error);
         }

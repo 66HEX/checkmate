@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import React, { useState } from 'react';
 import { supabase } from '@/app/utils/supabaseClient';
 import { useRouter } from 'next/navigation';
@@ -35,10 +34,12 @@ const RegisterPage = () => {
             }
 
             if (user?.user?.id) {
+                // Insert profile record
                 const { error: profileError } = await supabase
                     .from('profiles')
                     .insert({
                         id: user.user.id,
+                        email: user.user.email, // Ensure email is included here
                         role: 'worker',
                     });
 
