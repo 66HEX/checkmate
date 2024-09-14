@@ -133,7 +133,7 @@ export default function UserDetailPage({ params }: PageProps) {
                 <p className="text-base mb-6">User ID: <span className="font-medium text-base">{user.id}</span></p>
                 {isEditing ? (
                     <>
-                        <div className="mb-6">
+                        <div className="mb-3">
                             <label className="block text-darkgray text-base mb-1">First Name</label>
                             <input
                                 type="text"
@@ -142,7 +142,7 @@ export default function UserDetailPage({ params }: PageProps) {
                                 className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
                             />
                         </div>
-                        <div className="mb-6">
+                        <div className="mb-3">
                             <label className="block text-darkgray text-base mb-1">Last Name</label>
                             <input
                                 type="text"
@@ -151,7 +151,7 @@ export default function UserDetailPage({ params }: PageProps) {
                                 className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
                             />
                         </div>
-                        <div className="mb-6">
+                        <div className="mb-3">
                             <label className="block text-darkgray text-base mb-1">User Role</label>
                             <div className="relative">
                                 <select
