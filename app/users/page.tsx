@@ -120,7 +120,7 @@ export default function UsersList() {
                         users.map((user) => (
                             <div key={user.id}>
                                 <div
-                                    className="bg-gray hover:bg-lightgray text-offblack rounded p-4 cursor-pointer text-base my-3"
+                                    className="bg-lightgray text-offblack rounded p-4 cursor-pointer text-base my-3"
                                     onClick={() => handleUserClick(user.id)} // Redirect on click
                                 >
                                     <div className="flex flex-wrap items-center gap-4">
