@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/utils/supabaseClient";
+import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
 
 interface UserProfile {
     id: string;
@@ -94,12 +95,12 @@ export default function UsersList() {
     }
 
     return (
-        <div className="flex flex-col items-center justify-start h-screen w-full text-offblack font-NeueMontreal p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16">
+        <div className="flex flex-col items-center justify-start min-h-svh w-full text-offblack font-NeueMontreal p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16">
             <div
-                className="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-4 sm:p-6 md:p-8 bg-offwhite rounded shadow-lg mt-16 md:mt-0">
-                <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center">Users List</h1>
+                className="w-full max-w-full sm:max-w-lg  p-4 sm:p-6 md:p-8 bg-offwhite rounded shadow-lg mt-16 md:mt-0">
+                <h1 className="text-2xl font-bold mb-6 text-center">Users List</h1>
 
-                <div className="flex flex-wrap items-center gap-4 p-4 bg-offblack text-offwhite mb-4 rounded">
+                <div className="flex flex-wrap items-center gap-4 p-4 bg-offblack text-offwhite mb-3 rounded">
                     <div className="flex-1">
                         <strong className="text-base">First Name:</strong>
                     </div>
@@ -109,25 +110,32 @@ export default function UsersList() {
                     <div className="flex-1">
                         <strong className="text-base">Role:</strong>
                     </div>
+                    <div className="flex-1">
+                        <strong className="text-base">Details:</strong>
+                    </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="">
                     {users.length > 0 ? (
-                        users.map(user => (
-                            <div
-                                key={user.id}
-                                className="bg-lightgray text-offblack rounded p-4 cursor-pointer text-base"
-                                onClick={() => handleUserClick(user.id)} // Redirect on click
-                            >
-                                <div className="flex flex-wrap items-center gap-4">
-                                    <div className="flex-1">
-                                        {user.firstname}
-                                    </div>
-                                    <div className="flex-1">
-                                        {user.lastname}
-                                    </div>
-                                    <div className="flex-1">
-                                        {getRoleDisplayName(user.role)}
+                        users.map((user, index) => (
+                            <div key={user.id}>
+                                <div
+                                    className="bg-gray hover:bg-lightgray text-offblack rounded p-4 cursor-pointer text-base my-3"
+                                    onClick={() => handleUserClick(user.id)} // Redirect on click
+                                >
+                                    <div className="flex flex-wrap items-center gap-4">
+                                        <div className="flex-1">
+                                            {user.firstname}
+                                        </div>
+                                        <div className="flex-1">
+                                            {user.lastname}
+                                        </div>
+                                        <div className="flex-1">
+                                            {getRoleDisplayName(user.role)}
+                                        </div>
+                                        <div className="flex-1 flex justify-end">
+                                            <ArrowIcon className="h-6 w-6" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -136,6 +144,7 @@ export default function UsersList() {
                         <div className="text-center p-4">No users found.</div>
                     )}
                 </div>
+
             </div>
         </div>
     );
