@@ -4,8 +4,8 @@ import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
-import { FaCheck, FaTimes } from 'react-icons/fa'; // Import icons
+import { FaCheck, FaTimes } from 'react-icons/fa';
+import { IoIosArrowUp , IoIosArrowDown} from "react-icons/io";
 
 interface Task {
     id: number;
@@ -135,43 +135,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
     };
 
-    const handleOnDragEnd = async (result: DropResult) => {
-        const { destination, source } = result;
-
-        if (!destination || destination.index === source.index) {
-            return;
-        }
-
-        const updatedTasks = Array.from(project?.tasks || []);
-        const [movedTask] = updatedTasks.splice(source.index, 1);
-        updatedTasks.splice(destination.index, 0, movedTask);
-
-        updatedTasks.forEach((task, index) => {
-            task.order = index + 1;
-        });
-
-        setProject(prev => prev ? { ...prev, tasks: updatedTasks } : null);
-
-        try {
-            for (let i = 0; i < updatedTasks.length; i++) {
-                const { error } = await supabase
-                    .from('tasks')
-                    .update({ order: i + 1 })
-                    .eq('id', updatedTasks[i].id);
-
-                if (error) {
-                    throw new Error(error.message);
-                }
-            }
-        } catch (error) {
-            if (error instanceof Error) {
-                console.error("Error updating task order:", error.message);
-            } else {
-                console.error("An unknown error occurred");
-            }
-        }
-    };
-
     const handleSave = async () => {
         try {
             // Aktualizacja projektu
@@ -188,7 +151,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
             const updateTasksPromises = editTasks.map(task =>
                 supabase
                     .from('tasks')
-                    .update({ title: task.title })
+                    .update({ title: task.title, order: task.order })
                     .eq('id', task.id)
             );
 
@@ -212,7 +175,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
             }
 
             setIsEditing(false);
-            fetchProject();  // Odswież dane po zapisaniu
+            fetchProject();
         } catch (error) {
             console.error('Error updating project or tasks:', error);
         }
@@ -222,14 +185,14 @@ export default function ProjectDetailPage({ params }: PageProps) {
         if (!newTaskTitle.trim()) return;
 
         const newTask: Task = {
-            id: 0, // tymczasowe, do zaktualizowania przy zapisie
+            id: 0,
             title: newTaskTitle,
             status: 'uncompleted',
             order: editTasks.length + 1,
         };
 
         setEditTasks([...editTasks, newTask]);
-        setNewTaskTitle(''); // Resetuj pole tekstowe
+        setNewTaskTitle('');
     };
 
     const handleDeleteTask = async (taskId: number) => {
@@ -243,7 +206,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 throw error;
             }
 
-            // Aktualizacja stanu po usunięciu zadania
             setProject(prev => {
                 if (!prev) return null;
                 const updatedTasks = prev.tasks.filter(task => task.id !== taskId);
@@ -260,6 +222,12 @@ export default function ProjectDetailPage({ params }: PageProps) {
     };
 
     const handleDelete = async () => {
+        const confirmation = window.confirm("Are you sure you want to delete this project?");
+
+        if (!confirmation) {
+            return;
+        }
+
         try {
             const { error: tasksError } = await supabase
                 .from('tasks')
@@ -279,10 +247,28 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 throw projectError;
             }
 
-            router.push('/projects'); // Redirect to the homepage or any other page after deletion
+            router.push('/projects');
         } catch (error) {
             console.error('Error deleting project:', error);
         }
+    };
+
+    const handleTaskOrderChange = (index: number, direction: 'up' | 'down') => {
+        setEditTasks(prevTasks => {
+            const newTasks = [...prevTasks];
+            const taskToMove = newTasks[index];
+            const swapIndex = direction === 'up' ? index - 1 : index + 1;
+
+            if (swapIndex < 0 || swapIndex >= newTasks.length) return newTasks;
+
+            newTasks[index] = newTasks[swapIndex];
+            newTasks[swapIndex] = taskToMove;
+
+            // Update the order of tasks
+            newTasks.forEach((task, idx) => (task.order = idx + 1));
+
+            return newTasks;
+        });
     };
 
     if (status === "loading" || loading || project === null) {
@@ -324,12 +310,28 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                                 />
                                 {isAdmin && (
-                                    <button
-                                        onClick={() => handleDeleteTask(task.id)}
-                                        className="ml-2 bg-offblack hover:bg-darkgray text-white p-2 rounded"
-                                    >
-                                        Remove
-                                    </button>
+                                    <div className="flex flex-row items-center justify-center ml-2">
+                                        <button
+                                            onClick={() => handleDeleteTask(task.id)}
+                                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded mr-1"
+                                        >
+                                            Remove
+                                        </button>
+                                        <div className="space-y-1 flex flex-col">
+                                            <button
+                                                onClick={() => handleTaskOrderChange(index, 'up')}
+                                                className="bg-offblack hover:bg-darkgray text-offwhite rounded "
+                                            >
+                                                <IoIosArrowUp />
+                                            </button>
+                                            <button
+                                                onClick={() => handleTaskOrderChange(index, 'down')}
+                                                className="bg-offblack hover:bg-darkgray text-offwhite rounded"
+                                            >
+                                                <IoIosArrowDown />
+                                            </button>
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         ))}
@@ -383,41 +385,24 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         )}
                         <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
                         {project.tasks.length > 0 ? (
-                            <DragDropContext onDragEnd={handleOnDragEnd}>
-                                <Droppable droppableId="tasks">
-                                    {(provided) => (
-                                        <ul
-                                            className="space-y-4"
-                                            {...provided.droppableProps}
-                                            ref={provided.innerRef}
-                                        >
-                                            {project.tasks.map((task, index) => (
-                                                <Draggable key={task.id} draggableId={task.id.toString()} index={index}>
-                                                    {(provided) => (
-                                                        <li
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                            className={`p-2 rounded cursor-pointer transition-all text-offwhite text-lg font-medium flex items-center justify-between ${
-                                                                task.status === 'completed'
-                                                                    ? 'bg-success hover:bg-successhover'
-                                                                    : 'bg-warning hover:bg-warninghover'
-                                                            }`}
-                                                            onClick={() => toggleTaskStatus(task.id, task.status)}
-                                                        >
-                                                            <span>{task.title}</span>
-                                                            <span className="text-xl">
-                                                                {task.status === 'completed' ? <FaCheck /> : <FaTimes />}
-                                                            </span>
-                                                        </li>
-                                                    )}
-                                                </Draggable>
-                                            ))}
-                                            {provided.placeholder}
-                                        </ul>
-                                    )}
-                                </Droppable>
-                            </DragDropContext>
+                            <ul className="space-y-4">
+                                {project.tasks.map((task) => (
+                                    <li
+                                        key={task.id}
+                                        className={`p-2 rounded cursor-pointer transition-all text-offwhite text-lg font-medium flex items-center justify-between ${
+                                            task.status === 'completed'
+                                                ? 'bg-success hover:bg-successhover'
+                                                : 'bg-warning hover:bg-warninghover'
+                                        }`}
+                                        onClick={() => toggleTaskStatus(task.id, task.status)}
+                                    >
+                                        <span>{task.title}</span>
+                                        <span className="text-xl">
+                                            {task.status === 'completed' ? <FaCheck /> : <FaTimes />}
+                                        </span>
+                                    </li>
+                                ))}
+                            </ul>
                         ) : (
                             <p className="text-lg">No tasks available for this project.</p>
                         )}
