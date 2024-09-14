@@ -117,7 +117,7 @@ export default function UsersList() {
 
                 <div className="">
                     {users.length > 0 ? (
-                        users.map((user, index) => (
+                        users.map((user) => (
                             <div key={user.id}>
                                 <div
                                     className="bg-gray hover:bg-lightgray text-offblack rounded p-4 cursor-pointer text-base my-3"
