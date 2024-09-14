@@ -114,13 +114,13 @@ export default function Tasks() {
                                 <h3 className="text-2xl font-bold mb-3">{project.title}</h3>
                             </div>
                             <div className="mt-4">
-                                <p className="text-base text-gray-500 mb-1">
+                                <p className="text-base text-darkgray mb-1">
                                     {totalTasks} Tasks
                                 </p>
-                                <p className="text-base text-gray-500 mb-1">
+                                <p className="text-base text-darkgray mb-1">
                                     Completed: {completedTasks}
                                 </p>
-                                <p className="text-base text-gray-500">
+                                <p className="text-base text-darkgray">
                                     Uncompleted: {uncompletedTasks}
                                 </p>
                             </div>

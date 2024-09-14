@@ -11,6 +11,7 @@ interface UserProfile {
     email: string;
     firstname: string;
     lastname: string;
+    role: string;
 }
 
 export default function UsersList() {
@@ -52,7 +53,7 @@ export default function UsersList() {
 
                 const { data: usersData, error: usersError } = await supabase
                     .from('profiles')
-                    .select('id, email, firstname, lastname') // Fetch firstname and lastname
+                    .select('id, email, firstname, lastname, role') // Fetch role along with other fields
                     .neq('id', userId);
 
                 if (usersError) {
@@ -76,46 +77,64 @@ export default function UsersList() {
         router.push(`/users/${userId}`); // Redirect to user details page
     };
 
-    // Usunięcie ekranu ładowania i komunikatu o błędzie
+    const getRoleDisplayName = (role: string) => {
+        switch (role) {
+            case 'admin':
+                return 'Admin';
+            case 'worker':
+                return 'Worker';
+            default:
+                return 'Unknown';
+        }
+    };
+
+    // Display loading and error states
     if (loading || error) {
-        return null;
+        return null; // Render nothing if loading or error occurs
     }
 
     return (
         <div className="flex flex-col items-center justify-start h-screen w-full text-offblack font-NeueMontreal p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16">
-            <div className="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-4 sm:p-6 md:p-8 bg-offwhite rounded shadow-lg mt-16 md:mt-0">
+            <div
+                className="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-4 sm:p-6 md:p-8 bg-offwhite rounded shadow-lg mt-16 md:mt-0">
                 <h1 className="text-xl sm:text-2xl font-bold mb-4 text-center">Users List</h1>
 
-                <div className="overflow-visible">
-                    <table className="w-full border-collapse">
-                        <thead>
-                        <tr className="bg-offblack text-offwhite">
-                            <th className="border p-2 text-left text-sm sm:text-base">First Name</th>
-                            <th className="border p-2 text-left text-sm sm:text-base">Last Name</th>
-                            <th className="border p-2 text-left text-sm sm:text-base">Email</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {users.length > 0 ? (
-                            users.map(user => (
-                                <tr key={user.id}>
-                                    <td
-                                        className="border p-2 text-sm sm:text-base cursor-pointer hover:underline"
-                                        onClick={() => handleUserClick(user.id)} // Redirect on click
-                                    >
+                <div className="flex flex-wrap items-center gap-4 p-4 bg-offblack text-offwhite mb-4 rounded">
+                    <div className="flex-1">
+                        <strong className="text-base">First Name:</strong>
+                    </div>
+                    <div className="flex-1">
+                        <strong className="text-base">Last Name:</strong>
+                    </div>
+                    <div className="flex-1">
+                        <strong className="text-base">Role:</strong>
+                    </div>
+                </div>
+
+                <div className="space-y-4">
+                    {users.length > 0 ? (
+                        users.map(user => (
+                            <div
+                                key={user.id}
+                                className="bg-lightgray text-offblack rounded p-4 cursor-pointer text-base"
+                                onClick={() => handleUserClick(user.id)} // Redirect on click
+                            >
+                                <div className="flex flex-wrap items-center gap-4">
+                                    <div className="flex-1">
                                         {user.firstname}
-                                    </td>
-                                    <td className="border p-2 text-sm sm:text-base">{user.lastname}</td>
-                                    <td className="border p-2 text-sm sm:text-base">{user.email}</td>
-                                </tr>
-                            ))
-                        ) : (
-                            <tr>
-                                <td colSpan={3} className="border p-2 text-center text-sm sm:text-base">No users found.</td>
-                            </tr>
-                        )}
-                        </tbody>
-                    </table>
+                                    </div>
+                                    <div className="flex-1">
+                                        {user.lastname}
+                                    </div>
+                                    <div className="flex-1">
+                                        {getRoleDisplayName(user.role)}
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center p-4">No users found.</div>
+                    )}
                 </div>
             </div>
         </div>

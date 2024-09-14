@@ -115,11 +115,21 @@ export default function UserDetailPage({ params }: PageProps) {
             console.log(result.message);
             router.push("/users");
         } catch (error) {
-            // Type guard to ensure `error` is an `Error` instance
             const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
             console.error("Error deleting user:", errorMessage);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const getRoleDisplayName = (role: string) => {
+        switch (role) {
+            case 'admin':
+                return 'Admin';
+            case 'worker':
+                return 'Worker';
+            default:
+                return 'Unknown';
         }
     };
 
@@ -183,7 +193,7 @@ export default function UserDetailPage({ params }: PageProps) {
                             {user.firstname} {user.lastname}
                         </h1>
                         <p className="text-lg mb-3">Email: {user.email}</p>
-                        <p className="text-lg mb-6">Role: {user.role}</p>
+                        <p className="text-lg mb-6">Role: {getRoleDisplayName(user.role)}</p>
                         <button
                             onClick={() => setIsEditing(true)}
                             className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
