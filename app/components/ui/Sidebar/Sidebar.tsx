@@ -1,21 +1,47 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { useSession, signOut } from 'next-auth/react';
+import { supabase } from '@/app/utils/supabaseClient';
 import logo from '@/public/checkmate.svg';
 import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
 
 export default function Sidebar() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
+    const [userRole, setUserRole] = useState<string | null>(null); // State for user role
     const { data: session } = useSession();
 
     const toggleSidebar = () => setIsOpen(!isOpen);
     const closeSidebar = () => setIsOpen(false);
+
+    useEffect(() => {
+        if (session?.user?.id) {
+            const fetchRole = async () => {
+                try {
+                    const { data: roleData, error: roleError } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', session.user.id)
+                        .single();
+
+                    if (roleError) {
+                        console.error("Error fetching user role:", roleError.message);
+                    } else {
+                        setUserRole(roleData?.role || null);
+                    }
+                } catch (error) {
+                    console.error("Unexpected error fetching user role:", error);
+                }
+            };
+
+            fetchRole();
+        }
+    }, [session]);
 
     return (
         <>
@@ -56,17 +82,28 @@ export default function Sidebar() {
                             {session && (
                                 <>
                                     <li>
-                                        <Link href="/projects" onClick={closeSidebar} className={`p-2 block rounded transition-colors text-lg ${pathname === '/projects' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
+                                        <Link href="/projects" onClick={closeSidebar}
+                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/projects' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
                                             Projects
                                         </Link>
                                     </li>
                                     <li>
-                                        <Link href="/completed" onClick={closeSidebar} className={`p-2 block rounded transition-colors text-lg ${pathname === '/completed' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
+                                        <Link href="/completed" onClick={closeSidebar}
+                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/completed' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
                                             Completed
                                         </Link>
                                     </li>
+                                    {userRole === 'admin' && (
+                                        <li>
+                                            <Link href="/users" onClick={closeSidebar}
+                                                  className={`p-2 block rounded transition-colors text-lg ${pathname === '/users' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
+                                                Users
+                                            </Link>
+                                        </li>
+                                    )}
                                     <li>
-                                        <Link href="/profile" onClick={closeSidebar} className={`p-2 block rounded transition-colors text-lg ${pathname === '/profile' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
+                                        <Link href="/profile" onClick={closeSidebar}
+                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/profile' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
                                             Profile
                                         </Link>
                                     </li>

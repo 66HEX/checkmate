@@ -21,15 +21,19 @@ interface Project {
 
 export default function Tasks() {
     const [projects, setProjects] = useState<Project[]>([]);
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
     const { data: session, status } = useSession();
     const router = useRouter();
 
     const fetchProjects = useCallback(async () => {
         try {
+            if (!session?.user?.email) return;
+
             const { data, error } = await supabase
                 .from('projects')
                 .select(`id, title, description, tasks (id, status)`)
-                .eq('user_email', session?.user?.email);
+                .eq('user_email', session.user.email);
 
             if (error) {
                 throw error;
@@ -45,6 +49,28 @@ export default function Tasks() {
         }
     }, [session?.user?.email]);
 
+    const fetchUserRole = useCallback(async () => {
+        try {
+            if (!session?.user?.id) return;
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error) {
+                throw error;
+            }
+
+            setUserRole(data?.role || null);
+        } catch (error) {
+            console.error('Error fetching user role:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [session?.user?.id]);
+
     useEffect(() => {
         if (status === "loading") {
             return;
@@ -56,22 +82,27 @@ export default function Tasks() {
         }
 
         fetchProjects();
-    }, [session, status, router, fetchProjects]);
+        fetchUserRole();
+    }, [session, status, router, fetchProjects, fetchUserRole]);
 
-    if (status === "loading") {
+    if (status === "loading" || loading) {
         return <div className="w-screen h-svh flex items-center justify-center font-JetBrainsMono text-offwhite text-2xl">Loading...</div>;
     }
 
+    const isAdmin = userRole === 'admin';
+
     return (
         <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16">
-            <Link href="/projects/new">
-                <div className="relative w-full h-64 bg-offblack hover:bg-darkgray text-offwhite rounded shadow-lg p-6 flex items-center justify-center cursor-pointer transition-all">
-                    <span className="text-2xl font-bold">Add New Project</span>
-                    <div className="absolute bottom-4 right-4 h-10 w-10">
-                        <ArrowIcon width={40} height={40} />
+            {isAdmin && (
+                <Link href="/projects/new">
+                    <div className="relative w-full h-64 bg-offblack hover:bg-darkgray text-offwhite rounded shadow-lg p-6 flex items-center justify-center cursor-pointer transition-all">
+                        <span className="text-2xl font-bold">Add New Project</span>
+                        <div className="absolute bottom-4 right-4 h-10 w-10">
+                            <ArrowIcon width={40} height={40} />
+                        </div>
                     </div>
-                </div>
-            </Link>
+                </Link>
+            )}
 
             {projects.map((project) => {
                 const totalTasks = project.tasks.length;

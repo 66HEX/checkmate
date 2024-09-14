@@ -28,11 +28,11 @@ const authOptions: NextAuthOptions = {
                     password,
                 });
 
-                if (loginError || !user) {
+                if (loginError || !user || !user.user) {
                     return null;
                 }
 
-                // Return all necessary user info, including email
+                // Return all necessary user info, including email and id
                 return {
                     id: user.user.id,
                     email: user.user.email,
@@ -49,15 +49,20 @@ const authOptions: NextAuthOptions = {
             return url.startsWith(baseUrl) ? url : `${baseUrl}/app/`;
         },
         async session({ session, token }) {
-            if (token?.email) {
-                session.user = session.user || {}; // Ensure user is not undefined
+            if (token) {
+                session.user = session.user || {};
                 session.user.email = token.email as string;
+                session.user.id = token.id as string;
             }
             return session;
         },
-        async jwt({ token }) {
-            if (token.email) {
-                token.email = token.email;
+
+        async jwt({ token, user }) {
+            if (user) {
+                token.email = user.email;
+                token.id = user.id;
+            } else if (token.sub) {
+                token.id = token.sub;
             }
             return token;
         }

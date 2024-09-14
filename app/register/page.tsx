@@ -25,20 +25,35 @@ const RegisterPage = () => {
         setError(null);
 
         try {
-            const { error } = await supabase.auth.signUp({
+            const { data: user, error: authError } = await supabase.auth.signUp({
                 email,
                 password,
             });
 
-            if (error) {
-                throw error;
+            if (authError) {
+                throw authError;
             }
 
-            alert('Registration successful! Please check your email for verification.');
-            setEmail('');
-            setPassword('');
-            setConfirmPassword('');
-            router.push('/login');
+            if (user?.user?.id) {
+                const { error: profileError } = await supabase
+                    .from('profiles')
+                    .insert({
+                        id: user.user.id,
+                        role: 'worker',
+                    });
+
+                if (profileError) {
+                    throw profileError;
+                }
+
+                alert('Registration successful! Please check your email for verification.');
+                setEmail('');
+                setPassword('');
+                setConfirmPassword('');
+                router.push('/login');
+            } else {
+                throw new Error('User registration failed: No user ID returned.');
+            }
         } catch (error: unknown) {
             if (error instanceof Error) {
                 setError(error.message);

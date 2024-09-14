@@ -35,6 +35,8 @@ export default function ProjectDetailPage({ params }: PageProps) {
     const [editDescription, setEditDescription] = useState('');
     const [editTasks, setEditTasks] = useState<Task[]>([]);
     const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [userRole, setUserRole] = useState<string | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
     const { data: session, status } = useSession();
     const router = useRouter();
     const projectId = params.id;
@@ -68,6 +70,28 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
     }, [projectId, router]);
 
+    const fetchUserRole = useCallback(async () => {
+        try {
+            if (!session?.user?.id) return;
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+
+            if (error) {
+                throw error;
+            }
+
+            setUserRole(data?.role || null);
+        } catch (error) {
+            console.error('Error fetching user role:', error);
+        } finally {
+            setLoading(false);
+        }
+    }, [session?.user?.id]);
+
     useEffect(() => {
         if (status === "loading") {
             return;
@@ -79,7 +103,8 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
 
         fetchProject();
-    }, [session, status, router, fetchProject]);
+        fetchUserRole();
+    }, [session, status, router, fetchProject, fetchUserRole]);
 
     const toggleTaskStatus = async (taskId: number, currentStatus: 'completed' | 'uncompleted') => {
         const newStatus = currentStatus === 'completed' ? 'uncompleted' : 'completed';
@@ -181,7 +206,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         project_id: projectId,
                     })));
 
-
                 if (newTasksError) {
                     throw newTasksError;
                 }
@@ -261,9 +285,11 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
     };
 
-    if (status === "loading" || project === null) {
+    if (status === "loading" || loading || project === null) {
         return <div className="w-screen h-svh flex items-center justify-center font-NeueMontreal text-offwhite text-2xl">Loading...</div>;
     }
+
+    const isAdmin = userRole === 'admin';
 
     return (
         <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
@@ -297,12 +323,14 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     }}
                                     className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                                 />
-                                <button
-                                    onClick={() => handleDeleteTask(task.id)}
-                                    className="ml-2 bg-offblack hover:bg-darkgray text-white p-2 rounded"
-                                >
-                                    Remove
-                                </button>
+                                {isAdmin && (
+                                    <button
+                                        onClick={() => handleDeleteTask(task.id)}
+                                        className="ml-2 bg-offblack hover:bg-darkgray text-white p-2 rounded"
+                                    >
+                                        Remove
+                                    </button>
+                                )}
                             </div>
                         ))}
                         <div className="flex items-center mb-6">
@@ -337,18 +365,22 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     <>
                         <h1 className="text-4xl font-bold mb-3">{project.title}</h1>
                         <p className="text-lg mb-6">{project.description}</p>
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            onClick={handleDelete}
-                            className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-6"
-                        >
-                            Delete
-                        </button>
+                        {isAdmin && (
+                            <>
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-6"
+                                >
+                                    Delete
+                                </button>
+                            </>
+                        )}
                         <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
                         {project.tasks.length > 0 ? (
                             <DragDropContext onDragEnd={handleOnDragEnd}>
