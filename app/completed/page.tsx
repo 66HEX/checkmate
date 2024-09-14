@@ -20,6 +20,7 @@ interface Project {
 
 export default function Completed() {
     const [projects, setProjects] = useState<Project[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
     const { data: session, status } = useSession();
     const router = useRouter();
 
@@ -41,6 +42,8 @@ export default function Completed() {
             setProjects(filteredProjects);
         } catch (error) {
             console.error('Error fetching projects:', error);
+        } finally {
+            setLoading(false); // Set loading to false once data is fetched
         }
     }, []);
 
@@ -57,12 +60,13 @@ export default function Completed() {
         fetchProjects();
     }, [session, status, router, fetchProjects]);
 
-    if (status === "loading") {
-        return <div className="w-screen h-svh flex items-center justify-center font-NeueMontreal text-offwhite text-2xl">Loading Projects...</div>;
+    // Usunięcie ekranu ładowania
+    if (status === "loading" || loading) {
+        return null;
     }
 
     return (
-        <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16">
+        <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
             {projects.map((project) => {
                 const totalTasks = project.tasks.length;
                 const completedTasks = project.tasks.filter((task) => task.status === 'completed').length;

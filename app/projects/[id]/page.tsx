@@ -167,7 +167,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         status: task.status,
                         order: task.order,
                         project_id: projectId,
-                    })));
+                    })))
 
                 if (newTasksError) {
                     throw newTasksError;
@@ -272,7 +272,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     };
 
     if (status === "loading" || loading || project === null) {
-        return <div className="w-screen h-svh flex items-center justify-center font-NeueMontreal text-offwhite text-2xl">Loading...</div>;
+        return null;
     }
 
     const isAdmin = userRole === 'admin';
@@ -285,23 +285,26 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 {isEditing ? (
                     <>
                         <div className="mb-3">
+                            <label className="block text-darkgray text-base mb-1">Project Title</label>
                             <input
                                 type="text"
                                 value={editTitle}
                                 onChange={(e) => setEditTitle(e.target.value)}
                                 className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
-                                maxLength={60} // Limit input to 50 characters
+                                maxLength={60} // Limit input to 60 characters
                             />
                             <span className="text-right text-darkgray text-sm">
                                 {60 - editTitle.length} characters left
                             </span>
                         </div>
                         <div className="mb-6">
+                            <label className="block text-darkgray text-base mb-1">Project Description</label>
                             <textarea
                                 value={editDescription}
                                 onChange={(e) => setEditDescription(e.target.value)}
                                 className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
-                                maxLength={500} // Limit input to 350 characters
+                                rows={4}
+                                maxLength={500}
                             />
                             <span className="text-right text-darkgray text-sm">
                                 {500 - editDescription.length} characters left
@@ -424,3 +427,4 @@ export default function ProjectDetailPage({ params }: PageProps) {
         </div>
     );
 }
+

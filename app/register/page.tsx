@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const RegisterPage = () => {
+    const [firstname, setFirstName] = useState<string>('');
+    const [lastname, setLastName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [confirmPassword, setConfirmPassword] = useState<string>('');
@@ -39,7 +41,9 @@ const RegisterPage = () => {
                     .from('profiles')
                     .insert({
                         id: user.user.id,
-                        email: user.user.email, // Ensure email is included here
+                        email: user.user.email,
+                        firstname: firstname,
+                        lastname: lastname,
                         role: 'worker',
                     });
 
@@ -51,6 +55,8 @@ const RegisterPage = () => {
                 setEmail('');
                 setPassword('');
                 setConfirmPassword('');
+                setFirstName('');
+                setLastName('');
                 router.push('/login');
             } else {
                 throw new Error('User registration failed: No user ID returned.');
@@ -72,6 +78,30 @@ const RegisterPage = () => {
                 <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
                 {error && <p className="text-warning mb-3 text-center">{error}</p>}
                 <form onSubmit={handleRegister}>
+                    <div className="mb-3">
+                        <label htmlFor="firstName" className="block text-base mb-1">First Name</label>
+                        <input
+                            type="text"
+                            id="firstName"
+                            value={firstname}
+                            onChange={(e) => setFirstName(e.target.value)}
+                            required
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
+                            placeholder={`John`}
+                        />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="lastName" className="block text-base mb-1">First Name</label>
+                        <input
+                            type="text"
+                            id="lastName"
+                            value={lastname}
+                            onChange={(e) => setLastName(e.target.value)}
+                            required
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
+                            placeholder={`Doe`}
+                        />
+                    </div>
                     <div className="mb-3">
                         <label htmlFor="email" className="block text-base mb-1">Email</label>
                         <input

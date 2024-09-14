@@ -82,8 +82,9 @@ export default function Tasks() {
         fetchUserRole();
     }, [session, status, router, fetchProjects, fetchUserRole]);
 
+    // Usunięcie ekranu ładowania
     if (status === "loading" || loading) {
-        return <div className="w-screen h-svh flex items-center justify-center font-JetBrainsMono text-offwhite text-2xl">Loading...</div>;
+        return null;
     }
 
     const isAdmin = userRole === 'admin';

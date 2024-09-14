@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Image from 'next/image';
@@ -15,6 +15,7 @@ export default function Sidebar() {
     const [isOpen, setIsOpen] = useState(false);
     const [userRole, setUserRole] = useState<string | null>(null); // State for user role
     const { data: session } = useSession();
+    const sidebarRef = useRef<HTMLDivElement>(null); // Ref for the sidebar
 
     const toggleSidebar = () => setIsOpen(!isOpen);
     const closeSidebar = () => setIsOpen(false);
@@ -43,6 +44,24 @@ export default function Sidebar() {
         }
     }, [session]);
 
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
+                closeSidebar();
+            }
+        };
+
+        if (isOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isOpen]);
+
     return (
         <>
             <button
@@ -53,7 +72,8 @@ export default function Sidebar() {
             </button>
 
             <nav
-                className={`fixed top-0 left-0 z-40 w-72 bg-offwhite text-offblack flex flex-col justify-between p-4 h-screen font-NeueMontreal shadow-lg transition-transform duration-300 xl:fixed xl:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} xl:block`}
+                ref={sidebarRef}
+                className={`fixed top-0 left-0 z-40 w-72 bg-offwhite text-offblack flex flex-col justify-between p-4 min-h-svh h-full font-NeueMontreal shadow-lg transition-transform duration-300 xl:fixed xl:translate-x-0 ${isOpen ? 'translate-x-0' : '-translate-x-full'} xl:block`}
             >
                 <div className="flex flex-col flex-grow h-full justify-between">
                     <div>
@@ -62,8 +82,8 @@ export default function Sidebar() {
                             <Image
                                 src={logo}
                                 alt="Checkmate Logo"
-                                width={100}
-                                height={100}
+                                width={80}
+                                height={80}
                                 className="mx-auto"
                             />
                         </div>

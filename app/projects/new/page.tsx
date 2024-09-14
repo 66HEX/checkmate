@@ -22,8 +22,6 @@ export default function NewProjectForm() {
     const { data: session, status } = useSession();
     const router = useRouter();
 
-
-
     useEffect(() => {
         if (status === "loading") {
             return;
@@ -33,8 +31,6 @@ export default function NewProjectForm() {
             router.push('/');
             return;
         }
-
-
     }, [session, status, router]);
 
     useEffect(() => {

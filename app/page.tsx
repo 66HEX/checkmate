@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
@@ -9,13 +8,18 @@ import { supabase } from '@/app/utils/supabaseClient';
 
 export default function Home() {
     const { data: session, status } = useSession();
-    const router = useRouter();
     const [userRole, setUserRole] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
 
     useEffect(() => {
         const fetchUserRole = async () => {
-            if (status === "loading" || !session) return;
+            if (status === "loading") return;
+
+            if (!session) {
+                setUserRole(null);
+                setLoading(false);
+                return;
+            }
 
             // Fetch the role of the user from the profiles table
             const { data, error } = await supabase
@@ -35,13 +39,14 @@ export default function Home() {
         };
 
         fetchUserRole();
+    }, [session, status]);
 
-        if (status === "loading") return;
-        if (!session) router.push('/');
-    }, [session, status, router]);
-
-    const isAuthenticated = status === "authenticated";
     const isAdmin = userRole === 'admin';
+
+    // Return a loading spinner or nothing while loading
+    if (status === "loading" || loading) {
+        return null;
+    }
 
     return (
         <div className="w-screen h-svh flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
@@ -51,7 +56,7 @@ export default function Home() {
             <p className="text-lg md:text-xl text-offwhite mb-8 text-center max-w-3xl">
                 CHECKMATE is your go-to tool for managing projects and tasks. Perfect for freelancers who need to stay organized and productive.
             </p>
-            {isAuthenticated && !loading && isAdmin && (
+            {isAdmin && (
                 <Link href="/projects/new">
                     <div className="relative w-full max-w-md bg-offblack hover:bg-darkgray text-offwhite rounded shadow-lg p-4 flex items-center justify-center cursor-pointer transition-all">
                         <span className="text-xl font-bold">Start New Project</span>
