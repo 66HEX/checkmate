@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/app/utils/supabaseClient';
 import { useRouter } from 'next/navigation';
@@ -10,17 +11,36 @@ export default function NewUserForm() {
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [confirmPassword, setConfirmPassword] = useState<string>('');
+    const [role, setRole] = useState<string>('worker'); // State for role selection
+    const [team, setTeam] = useState<string>(''); // State for team
+    const [teams, setTeams] = useState<{ id: string, name: string }[]>([]); // State for teams
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+    const [isManager, setIsManager] = useState<boolean>(false); // State to track if the user is admin
+    const [checkingRole, setCheckingRole] = useState<boolean>(true); // State to track role check
     const router = useRouter();
-    const { data: session, status } = useSession(); // Get session data
+    const { data: session, status } = useSession();
 
     useEffect(() => {
+        const fetchTeams = async () => {
+            const { data: teamsData, error: teamsError } = await supabase
+                .from('teams')
+                .select('*');
+
+            if (teamsError) {
+                console.error("Error fetching teams:", teamsError.message);
+                setError(teamsError.message);
+                return;
+            }
+
+            setTeams(teamsData || []);
+        };
+
         const checkUserRole = async () => {
-            if (status === "loading") return; // Wait for session to load
+            if (status === "loading") return;
 
             if (!session) {
-                router.push("/"); // Redirect to home if not authenticated
+                router.push("/"); // Redirect if not authenticated
                 return;
             }
 
@@ -33,12 +53,15 @@ export default function NewUserForm() {
                 .eq('id', userId)
                 .single();
 
-            if (profileError || profile?.role !== 'admin') {
-                // Redirect to home if not admin or if there's an error
-                router.push("/");
+            if (profileError || profile?.role !== 'manager') {
+                router.push("/"); // Redirect if not admin
+            } else {
+                setIsManager(true); // User is admin, allow access
             }
+            setCheckingRole(false); // Role check completed
         };
 
+        fetchTeams();
         checkUserRole();
     }, [session, status, router]);
 
@@ -54,6 +77,7 @@ export default function NewUserForm() {
         setError(null);
 
         try {
+            // Rejestracja użytkownika
             const { data: user, error: authError } = await supabase.auth.signUp({
                 email,
                 password,
@@ -64,7 +88,7 @@ export default function NewUserForm() {
             }
 
             if (user?.user?.id) {
-                // Insert profile record
+                // Wstawienie rekordu profilu z ID zespołu
                 const { error: profileError } = await supabase
                     .from('profiles')
                     .insert({
@@ -72,7 +96,8 @@ export default function NewUserForm() {
                         email: user.user.email,
                         firstname: firstname,
                         lastname: lastname,
-                        role: 'worker',
+                        role: role, // Wybrana rola
+                        team_id: team // ID zespołu, które będzie przypisane do team_id
                     });
 
                 if (profileError) {
@@ -80,11 +105,14 @@ export default function NewUserForm() {
                 }
 
                 alert('Registration successful!');
+                // Resetowanie formularza
                 setEmail('');
                 setPassword('');
                 setConfirmPassword('');
                 setFirstName('');
                 setLastName('');
+                setRole('worker'); // Reset roli do domyślnej
+                setTeam(''); // Reset ID zespołu
                 router.push('/login');
             } else {
                 throw new Error('User registration failed: No user ID returned.');
@@ -100,8 +128,16 @@ export default function NewUserForm() {
         }
     };
 
+    if (status === "loading" || checkingRole) {
+        return null; // Loading state while checking role
+    }
+
+    if (!isManager) {
+        return null; // Render message if not admin
+    }
+
     return (
-        <div className="flex items-center justify-center h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
+        <div className="flex items-center justify-center min-h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
             <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Register New User</h1>
                 {error && <p className="text-warning mb-3 text-center">{error}</p>}
@@ -130,6 +166,36 @@ export default function NewUserForm() {
                             placeholder={`Doe`}
                         />
                     </div>
+                    <div className="mb-3">
+                        <label htmlFor="role" className="block text-base mb-1">Role</label>
+                        <select
+                            id="role"
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
+                            required
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
+                        >
+                            <option value="manager">Project Manager</option>
+                            <option value="leader">Team Leader</option>
+                            <option value="worker">Worker</option>
+                        </select>
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="team" className="block text-base mb-1">Team</label>
+                        <select
+                            id="team"
+                            value={team}
+                            onChange={(e) => setTeam(e.target.value)}
+                            required
+                            className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
+                        >
+                            <option value="">Select a team</option>
+                            {teams.map(t => (
+                                <option key={t.id} value={t.id}>{t.name}</option>
+                            ))}
+                        </select>
+                    </div>
+
                     <div className="mb-3">
                         <label htmlFor="email" className="block text-base mb-1">Email</label>
                         <input

@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
 import { FaCheck, FaTimes } from 'react-icons/fa';
-import { MdOutlineArrowDropUp , MdOutlineArrowDropDown } from "react-icons/md";
 
 interface Task {
     id: number;
@@ -137,7 +136,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
     const handleSave = async () => {
         try {
-            // Aktualizacja projektu
+            // Update project
             const { error: projectError } = await supabase
                 .from('projects')
                 .update({ title: editTitle, description: editDescription })
@@ -147,7 +146,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 throw projectError;
             }
 
-            // Aktualizacja istniejących tasków
+            // Update existing tasks
             const updateTasksPromises = editTasks.map(task =>
                 supabase
                     .from('tasks')
@@ -157,7 +156,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
             await Promise.all(updateTasksPromises);
 
-            // Zapis nowych tasków, które nie mają jeszcze ID
+            // Insert new tasks that don't have IDs yet
             const newTasks = editTasks.filter(task => !task.id);
             if (newTasks.length > 0) {
                 const { error: newTasksError } = await supabase
@@ -253,29 +252,11 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
     };
 
-    const handleTaskOrderChange = (index: number, direction: 'up' | 'down') => {
-        setEditTasks(prevTasks => {
-            const newTasks = [...prevTasks];
-            const taskToMove = newTasks[index];
-            const swapIndex = direction === 'up' ? index - 1 : index + 1;
-
-            if (swapIndex < 0 || swapIndex >= newTasks.length) return newTasks;
-
-            newTasks[index] = newTasks[swapIndex];
-            newTasks[swapIndex] = taskToMove;
-
-            // Update the order of tasks
-            newTasks.forEach((task, idx) => (task.order = idx + 1));
-
-            return newTasks;
-        });
-    };
-
     if (status === "loading" || loading || project === null) {
         return null;
     }
 
-    const isAdmin = userRole === 'admin';
+    const isManager = userRole === 'manager';
 
     return (
         <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
@@ -292,31 +273,31 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
                                     className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
-                                    maxLength={60} // Limit input to 60 characters
+                                    maxLength={50}
                                 />
                                 <span className="text-right text-darkgray text-sm">
-                    {60 - editTitle.length} characters left
-                </span>
+                                    {50 - editTitle.length} characters left
+                                </span>
                             </div>
                         </div>
 
                         <div className="mb-6">
                             <label className="block text-darkgray text-base mb-1">Project Description</label>
                             <div className="flex flex-col">
-                <textarea
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                    className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
-                    rows={4}
-                    maxLength={500}
-                />
+                                <textarea
+                                    value={editDescription}
+                                    onChange={(e) => setEditDescription(e.target.value)}
+                                    className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                                    rows={4}
+                                    maxLength={500}
+                                />
                                 <span className="text-right text-darkgray text-sm">
-                    {500 - editDescription.length} characters left
-                </span>
+                                    {500 - editDescription.length} characters left
+                                </span>
                             </div>
                         </div>
 
-                        <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
+                        <h2 className="text-darkgray text-base mb-3">Tasks</h2>
                         {editTasks.map((task, index) => (
                             <div key={index} className="flex items-center mb-3">
                                 <input
@@ -330,7 +311,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     }}
                                     className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                                 />
-                                {isAdmin && (
+                                {isManager && (
                                     <div className="flex flex-row items-center justify-center ml-2">
                                         <button
                                             onClick={() => handleDeleteTask(task.id)}
@@ -338,20 +319,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                         >
                                             Remove
                                         </button>
-                                        <div className="flex flex-col">
-                                            <button
-                                                onClick={() => handleTaskOrderChange(index, 'up')}
-                                                className="bg-offblack hover:bg-darkgray text-offwhite rounded p-0.5 mb-0.5"
-                                            >
-                                                <MdOutlineArrowDropUp />
-                                            </button>
-                                            <button
-                                                onClick={() => handleTaskOrderChange(index, 'down')}
-                                                className="bg-offblack hover:bg-darkgray text-offwhite rounded p-0.5"
-                                            >
-                                                <MdOutlineArrowDropDown />
-                                            </button>
-                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -390,7 +357,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     <>
                         <h1 className="text-4xl font-bold mb-3">{project.title}</h1>
                         <p className="text-lg mb-6">{project.description}</p>
-                        {isAdmin && (
+                        {isManager && (
                             <>
                                 <button
                                     onClick={() => setIsEditing(true)}
@@ -435,4 +402,3 @@ export default function ProjectDetailPage({ params }: PageProps) {
         </div>
     );
 }
-

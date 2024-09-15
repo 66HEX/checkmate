@@ -87,11 +87,11 @@ export default function ProjectsList() {
         return null;
     }
 
-    const isAdmin = userRole === 'admin';
+    const isManager = userRole === 'manager';
 
     return (
         <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
-            {isAdmin && (
+            {isManager && (
                 <Link href="/projects/new">
                     <div className="relative w-full h-64 bg-offblack hover:bg-darkgray text-offwhite rounded shadow-lg p-6 flex items-center justify-center cursor-pointer transition-all">
                         <span className="text-2xl font-bold">Add New Project</span>

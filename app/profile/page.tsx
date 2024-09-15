@@ -49,7 +49,8 @@ export default function Profile() {
 
     // Funkcja mapująca rolę
     const mapRole = (role: string | undefined) => {
-        if (role === 'admin') return 'Admin';
+        if (role === 'manager') return 'Project Manager';
+        if (role === 'leader') return 'Team Leader';
         if (role === 'worker') return 'Worker';
         return role; // jeśli inna rola, zwróć ją bez zmian
     };

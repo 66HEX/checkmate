@@ -91,7 +91,7 @@ export default function RegisterPage() {
                         />
                     </div>
                     <div className="mb-3">
-                        <label htmlFor="lastName" className="block text-base mb-1">First Name</label>
+                        <label htmlFor="lastName" className="block text-base mb-1">Last Name</label>
                         <input
                             type="text"
                             id="lastName"

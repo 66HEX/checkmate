@@ -41,7 +41,7 @@ export default function Home() {
         fetchUserRole();
     }, [session, status]);
 
-    const isAdmin = userRole === 'admin';
+    const isManager = userRole === 'manager';
 
     // Return a loading spinner or nothing while loading
     if (status === "loading" || loading) {
@@ -56,7 +56,7 @@ export default function Home() {
             <p className="text-lg md:text-xl text-offwhite mb-8 text-center max-w-3xl">
                 CHECKMATE is your go-to tool for managing projects and tasks. Perfect for freelancers who need to stay organized and productive.
             </p>
-            {isAdmin && (
+            {isManager && (
                 <Link href="/projects/new">
                     <div className="relative w-full max-w-md bg-offblack hover:bg-darkgray text-offwhite rounded shadow-lg p-4 flex items-center justify-center cursor-pointer transition-all">
                         <span className="text-xl font-bold">Start New Project</span>

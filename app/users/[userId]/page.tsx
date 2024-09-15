@@ -1,9 +1,13 @@
 "use client";
-
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/utils/supabaseClient";
+
+interface Team {
+    id: string;
+    name: string;
+}
 
 interface User {
     id: string;
@@ -11,6 +15,7 @@ interface User {
     role: string;
     firstname: string;
     lastname: string;
+    team: Team | null; // Use Team object
 }
 
 interface PageProps {
@@ -25,16 +30,20 @@ export default function UserDetailPage({ params }: PageProps) {
     const [editRole, setEditRole] = useState('');
     const [editFirstname, setEditFirstname] = useState('');
     const [editLastname, setEditLastname] = useState('');
+    const [editTeam, setEditTeam] = useState(''); // State for editing team
     const [loading, setLoading] = useState<boolean>(true);
+    const [isManager, setIsManager] = useState(false);
+    const [teams, setTeams] = useState<Team[]>([]); // State for list of teams
     const { data: session, status } = useSession();
     const router = useRouter();
     const userId = params.userId;
 
+    // Fetch user data
     const fetchUser = useCallback(async () => {
         try {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, email, role, firstname, lastname')
+                .select('id, email, role, firstname, lastname, team:team_id (id, name)')
                 .eq('id', userId)
                 .single();
 
@@ -43,16 +52,38 @@ export default function UserDetailPage({ params }: PageProps) {
                 return;
             }
 
-            setUser(data as User);
-            setEditRole(data.role);
-            setEditFirstname(data.firstname);
-            setEditLastname(data.lastname);
+            // Ensure team is a single object, not an array
+            const userData = {
+                ...data,
+                team: Array.isArray(data.team) ? data.team[0] || null : data.team,
+            };
+
+            setUser(userData as User);
+            setEditRole(userData.role);
+            setEditFirstname(userData.firstname);
+            setEditLastname(userData.lastname);
+            setEditTeam(userData.team?.id ?? ''); // Set the initial value for team id
         } catch (error) {
             console.error("Error fetching user:", error);
         } finally {
             setLoading(false);
         }
     }, [userId, router]);
+
+    // Fetch list of teams
+    const fetchTeams = useCallback(async () => {
+        try {
+            const { data, error } = await supabase.from('teams').select('id, name');
+
+            if (error) {
+                throw error;
+            }
+
+            setTeams(data as Team[]);
+        } catch (error) {
+            console.error("Error fetching teams:", error);
+        }
+    }, []);
 
     useEffect(() => {
         if (status === "loading") {
@@ -64,14 +95,44 @@ export default function UserDetailPage({ params }: PageProps) {
             return;
         }
 
+        const checkManager = async () => {
+            try {
+                const userId = session?.user?.id ?? '';
+                const { data: roleData, error: roleError } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', userId)
+                    .single();
+
+                if (roleError) {
+                    console.error("Error fetching user role:", roleError.message);
+                    return;
+                }
+
+                const role = roleData?.role;
+                if (role === 'manager') {
+                    setIsManager(true);
+                }
+            } catch (error) {
+                console.error("Error checking admin role:", error);
+            }
+        };
+
+        checkManager();
+        fetchTeams(); // Fetch teams when component mounts
         fetchUser();
-    }, [session, status, router, fetchUser]);
+    }, [session, status, router, fetchUser, fetchTeams]);
 
     const handleSave = async () => {
         try {
             const { error } = await supabase
                 .from('profiles')
-                .update({ role: editRole, firstname: editFirstname, lastname: editLastname })
+                .update({
+                    role: editRole,
+                    firstname: editFirstname,
+                    lastname: editLastname,
+                    team_id: editTeam // Save team_id
+                })
                 .eq('id', userId);
 
             if (error) {
@@ -80,7 +141,7 @@ export default function UserDetailPage({ params }: PageProps) {
 
             setUser((prevUser) => {
                 if (!prevUser) return null;
-                return { ...prevUser, role: editRole, firstname: editFirstname, lastname: editLastname };
+                return { ...prevUser, role: editRole, firstname: editFirstname, lastname: editLastname, team: teams.find(team => team.id === editTeam) ?? null }; // Update user with new team
             });
             setIsEditing(false);
         } catch (error) {
@@ -124,8 +185,10 @@ export default function UserDetailPage({ params }: PageProps) {
 
     const getRoleDisplayName = (role: string) => {
         switch (role) {
-            case 'admin':
-                return 'Admin';
+            case 'manager':
+                return 'Project Manager';
+            case 'leader':
+                return 'Team Leader';
             case 'worker':
                 return 'Worker';
             default:
@@ -134,7 +197,7 @@ export default function UserDetailPage({ params }: PageProps) {
     };
 
     if (status === "loading" || loading || user === null) {
-        return null;
+        return <div>Loading...</div>;
     }
 
     return (
@@ -167,12 +230,27 @@ export default function UserDetailPage({ params }: PageProps) {
                                 <select
                                     value={editRole}
                                     onChange={(e) => setEditRole(e.target.value)}
-                                    className="w-full p-2 border border-darkgray focus:outline-none rounded text-base appearance-none"
+                                    className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                                 >
-                                    <option value="admin">Admin</option>
+                                    <option value="manager">Project Manager</option>
+                                    <option value="leader">Team Leader</option>
                                     <option value="worker">Worker</option>
                                 </select>
                             </div>
+                        </div>
+                        <div className="mb-3">
+                            <label className="block text-darkgray text-base mb-1">Team</label>
+                            <select
+                                value={editTeam}
+                                onChange={(e) => setEditTeam(e.target.value)}
+                                className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
+                            >
+                                {teams.map(team => (
+                                    <option key={team.id} value={team.id}>
+                                        {team.name}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <button
                             onClick={handleSave}
@@ -189,23 +267,28 @@ export default function UserDetailPage({ params }: PageProps) {
                     </>
                 ) : (
                     <>
-                        <h1 className="text-4xl font-bold mb-3">
+                        <h1 className="text-4xl font-bold mb-6">
                             {user.firstname} {user.lastname}
                         </h1>
-                        <p className="text-lg mb-3">Email: {user.email}</p>
-                        <p className="text-lg mb-6">Role: {getRoleDisplayName(user.role)}</p>
-                        <button
-                            onClick={() => setIsEditing(true)}
-                            className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
-                        >
-                            Edit
-                        </button>
-                        <button
-                            onClick={handleDelete}
-                            className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-6"
-                        >
-                            Delete
-                        </button>
+                        <p className="text-lg mb-3">Team: {user.team?.name || 'No team assigned'}</p>
+                        <p className="text-lg mb-3">Role: {getRoleDisplayName(user.role)}</p>
+                        <p className="text-lg mb-6">Email: {user.email}</p>
+                        {isManager && (
+                            <>
+                                <button
+                                    onClick={() => setIsEditing(true)}
+                                    className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
+                                >
+                                    Edit
+                                </button>
+                                <button
+                                    onClick={handleDelete}
+                                    className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-6"
+                                >
+                                    Delete
+                                </button>
+                            </>
+                        )}
                     </>
                 )}
             </div>

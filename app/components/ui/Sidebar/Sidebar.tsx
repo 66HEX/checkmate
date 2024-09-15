@@ -13,36 +13,10 @@ import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
 export default function Sidebar() {
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
-    const [userRole, setUserRole] = useState<string | null>(null); // State for user role
     const { data: session } = useSession();
     const sidebarRef = useRef<HTMLDivElement>(null); // Ref for the sidebar
-
     const toggleSidebar = () => setIsOpen(!isOpen);
     const closeSidebar = () => setIsOpen(false);
-
-    useEffect(() => {
-        if (session?.user?.id) {
-            const fetchRole = async () => {
-                try {
-                    const { data: roleData, error: roleError } = await supabase
-                        .from('profiles')
-                        .select('role')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    if (roleError) {
-                        console.error("Error fetching user role:", roleError.message);
-                    } else {
-                        setUserRole(roleData?.role || null);
-                    }
-                } catch (error) {
-                    console.error("Unexpected error fetching user role:", error);
-                }
-            };
-
-            fetchRole();
-        }
-    }, [session]);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -113,14 +87,14 @@ export default function Sidebar() {
                                             Completed
                                         </Link>
                                     </li>
-                                    {userRole === 'admin' && (
-                                        <li>
-                                            <Link href="/users" onClick={closeSidebar}
-                                                  className={`p-2 block rounded transition-colors text-lg ${pathname === '/users' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
-                                                Users
-                                            </Link>
-                                        </li>
-                                    )}
+
+                                    <li>
+                                        <Link href="/users" onClick={closeSidebar}
+                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/users' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
+                                            Users
+                                        </Link>
+                                    </li>
+
                                     <li>
                                         <Link href="/profile" onClick={closeSidebar}
                                               className={`p-2 block rounded transition-colors text-lg ${pathname === '/profile' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>

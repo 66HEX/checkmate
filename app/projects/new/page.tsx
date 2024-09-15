@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
@@ -20,17 +20,37 @@ export default function NewProjectForm() {
     const [projectTitleLength, setProjectTitleLength] = useState<number>(0);
     const [projectDescriptionLength, setProjectDescriptionLength] = useState<number>(0);
     const { data: session, status } = useSession();
+    const [isManager, setIsManager] = useState<boolean>(false); // State to track if the user is a manager
+    const [checkingRole, setCheckingRole] = useState<boolean>(true); // State to track role
     const router = useRouter();
 
     useEffect(() => {
-        if (status === "loading") {
-            return;
-        }
+        const checkUserRole = async () => {
+            if (status === "loading") return;
 
-        if (!session) {
-            router.push('/');
-            return;
-        }
+            if (!session) {
+                router.push("/"); // Redirect if not authenticated
+                return;
+            }
+
+            const userId = session?.user?.id ?? '';
+
+            // Fetch the user's role from the profiles table
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', userId)
+                .single();
+
+            if (profileError || profile?.role !== 'manager') {
+                router.push("/"); // Redirect if not manager
+            } else {
+                setIsManager(true); // User is manager, allow access
+            }
+            setCheckingRole(false); // Role check completed
+        };
+
+        checkUserRole();
     }, [session, status, router]);
 
     useEffect(() => {
@@ -151,15 +171,19 @@ export default function NewProjectForm() {
         }
     };
 
-    if (status === "loading") {
-        return <div className="w-screen h-svh flex items-center justify-center font-NeueMontreal text-offwhite text-2xl">Loading...</div>;
+    if (status === "loading" || checkingRole) {
+        return null; // Loading state while checking role
+    }
+
+    if (!isManager) {
+        return null; // Render message if not manager
     }
 
     return (
         <div className="w-screen flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
             <form
                 onSubmit={handleSubmit}
-                className="bg-offwhite p-8 rounded shadow-lg w-full max-w-xl mt-16 md:mt-0"
+                className="bg-offwhite p-6 rounded shadow-lg w-full max-w-xl mt-16 md:mt-0"
             >
                 <h1 className="text-3xl font-bold mb-6 text-offblack text-center">Add New Project</h1>
 
@@ -173,10 +197,10 @@ export default function NewProjectForm() {
                             className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                             required
                             placeholder="Project Title"
-                            maxLength={60}
+                            maxLength={50}
                         />
                         <span className="text-right text-darkgray text-sm mt-1">
-                            {60 - projectTitleLength} characters left
+                            {50 - projectTitleLength} characters left
                         </span>
                     </div>
                 </div>
@@ -198,7 +222,6 @@ export default function NewProjectForm() {
                         </span>
                     </div>
                 </div>
-
 
                 <div className="mb-3">
                     <label className="block text-darkgray text-base mb-1">Tasks</label>
