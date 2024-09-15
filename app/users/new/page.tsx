@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '@/app/utils/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
-import Link from 'next/link';
 
 export default function NewUserForm() {
     const [firstname, setFirstName] = useState<string>('');
