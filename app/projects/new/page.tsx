@@ -159,41 +159,46 @@ export default function NewProjectForm() {
         <div className="w-screen flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
             <form
                 onSubmit={handleSubmit}
-                className="bg-offwhite p-8 rounded shadow-lg w-full max-w-lg mt-16 md:mt-0"
+                className="bg-offwhite p-8 rounded shadow-lg w-full max-w-xl mt-16 md:mt-0"
             >
                 <h1 className="text-3xl font-bold mb-6 text-offblack text-center">Add New Project</h1>
 
                 <div className="mb-3">
                     <label className="block text-darkgray text-base mb-1">Project Title</label>
-                    <input
-                        type="text"
-                        value={projectTitle}
-                        onChange={(e) => setProjectTitle(e.target.value)}
-                        className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
-                        required
-                        placeholder={`Project Title`}
-                        maxLength={60}
-                    />
-                    <span className="text-right text-darkgray text-sm mt-1">
-                        {60 - projectTitleLength} characters remaining
-                    </span>
+                    <div className="flex flex-col">
+                        <input
+                            type="text"
+                            value={projectTitle}
+                            onChange={(e) => setProjectTitle(e.target.value)}
+                            className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
+                            required
+                            placeholder="Project Title"
+                            maxLength={60}
+                        />
+                        <span className="text-right text-darkgray text-sm mt-1">
+                            {60 - projectTitleLength} characters left
+                        </span>
+                    </div>
                 </div>
 
                 <div className="mb-3">
                     <label className="block text-darkgray text-base mb-1">Project Description</label>
-                    <textarea
-                        value={projectDescription}
-                        onChange={(e) => setProjectDescription(e.target.value)}
-                        className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
-                        rows={4}
-                        required
-                        placeholder={`Project Description`}
-                        maxLength={500}
-                    />
-                    <span className="text-right text-darkgray text-sm mt-1">
-                        {500 - projectDescriptionLength} characters remaining
-                    </span>
+                    <div className="flex flex-col">
+                        <textarea
+                            value={projectDescription}
+                            onChange={(e) => setProjectDescription(e.target.value)}
+                            className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
+                            rows={4}
+                            required
+                            placeholder="Project Description"
+                            maxLength={500}
+                        />
+                        <span className="text-right text-darkgray text-sm mt-1">
+                            {500 - projectDescriptionLength} characters left
+                        </span>
+                    </div>
                 </div>
+
 
                 <div className="mb-3">
                     <label className="block text-darkgray text-base mb-1">Tasks</label>

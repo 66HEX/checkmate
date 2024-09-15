@@ -286,30 +286,36 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     <>
                         <div className="mb-3">
                             <label className="block text-darkgray text-base mb-1">Project Title</label>
-                            <input
-                                type="text"
-                                value={editTitle}
-                                onChange={(e) => setEditTitle(e.target.value)}
-                                className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
-                                maxLength={60} // Limit input to 60 characters
-                            />
-                            <span className="text-right text-darkgray text-sm">
-                                {60 - editTitle.length} characters left
-                            </span>
+                            <div className="flex flex-col">
+                                <input
+                                    type="text"
+                                    value={editTitle}
+                                    onChange={(e) => setEditTitle(e.target.value)}
+                                    className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                                    maxLength={60} // Limit input to 60 characters
+                                />
+                                <span className="text-right text-darkgray text-sm">
+                    {60 - editTitle.length} characters left
+                </span>
+                            </div>
                         </div>
+
                         <div className="mb-6">
                             <label className="block text-darkgray text-base mb-1">Project Description</label>
-                            <textarea
-                                value={editDescription}
-                                onChange={(e) => setEditDescription(e.target.value)}
-                                className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
-                                rows={4}
-                                maxLength={500}
-                            />
-                            <span className="text-right text-darkgray text-sm">
-                                {500 - editDescription.length} characters left
-                            </span>
+                            <div className="flex flex-col">
+                <textarea
+                    value={editDescription}
+                    onChange={(e) => setEditDescription(e.target.value)}
+                    className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                    rows={4}
+                    maxLength={500}
+                />
+                                <span className="text-right text-darkgray text-sm">
+                    {500 - editDescription.length} characters left
+                </span>
+                            </div>
                         </div>
+
                         <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
                         {editTasks.map((task, index) => (
                             <div key={index} className="flex items-center mb-3">
@@ -350,6 +356,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                 )}
                             </div>
                         ))}
+
                         <div className="flex items-center mb-6">
                             <input
                                 type="text"
@@ -359,6 +366,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                 placeholder="New Task Title"
                             />
                         </div>
+
                         <button
                             onClick={handleAddTask}
                             className="bg-offblack hover:bg-darkgray text-white p-2 rounded mb-3"
