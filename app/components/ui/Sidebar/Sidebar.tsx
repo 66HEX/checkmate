@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { useSession, signOut } from 'next-auth/react';
-import { supabase } from '@/app/utils/supabaseClient';
 import logo from '@/public/checkmate.svg';
 import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
 
