@@ -12,6 +12,7 @@ export default function Profile() {
     const [role, setRole] = useState<string | undefined>();
     const [newPassword, setNewPassword] = useState<string>("");
     const [confirmPassword, setConfirmPassword] = useState<string>("");
+
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
 
@@ -45,6 +46,13 @@ export default function Profile() {
             fetchRole();
         }
     }, [session, status, router]);
+
+    // Funkcja mapująca rolę
+    const mapRole = (role: string | undefined) => {
+        if (role === 'admin') return 'Admin';
+        if (role === 'worker') return 'Worker';
+        return role; // jeśli inna rola, zwróć ją bez zmian
+    };
 
     const handlePasswordChange = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -94,7 +102,7 @@ export default function Profile() {
                     <input
                         type="text"
                         id="role"
-                        value={role || "Loading..."}
+                        value={mapRole(role) || "Loading..."} // Używamy funkcji mapującej
                         readOnly
                         className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                     />
