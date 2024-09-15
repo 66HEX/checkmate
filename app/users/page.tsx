@@ -135,13 +135,10 @@ export default function UsersList() {
                         </div>
                         <div>
                             <p className="text-base text-darkgray mb-1">
-                                Team: {user.team?.name || 'No team assigned'}
+                                {getRoleDisplayName(user.role)}
                             </p>
                             <p className="text-base text-darkgray mb-1">
-                                Role: {getRoleDisplayName(user.role)}
-                            </p>
-                            <p className="text-base text-darkgray">
-                                {user.email}
+                                {user.team?.name || 'No team assigned'}
                             </p>
                         </div>
                     </div>

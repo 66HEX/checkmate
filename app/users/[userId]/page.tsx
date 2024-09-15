@@ -131,7 +131,7 @@ export default function UserDetailPage({ params }: PageProps) {
                     role: editRole,
                     firstname: editFirstname,
                     lastname: editLastname,
-                    team_id: editTeam // Save team_id
+                    team_id: editTeam || null  // Ustawienie null dla braku zespołu
                 })
                 .eq('id', userId);
 
@@ -141,13 +141,20 @@ export default function UserDetailPage({ params }: PageProps) {
 
             setUser((prevUser) => {
                 if (!prevUser) return null;
-                return { ...prevUser, role: editRole, firstname: editFirstname, lastname: editLastname, team: teams.find(team => team.id === editTeam) ?? null }; // Update user with new team
+                return {
+                    ...prevUser,
+                    role: editRole,
+                    firstname: editFirstname,
+                    lastname: editLastname,
+                    team: teams.find(team => team.id === editTeam) ?? null  // Zaktualizowanie teamu lub ustawienie null
+                };
             });
             setIsEditing(false);
         } catch (error) {
             console.error("Error updating user:", error);
         }
     };
+
 
     const handleDelete = async () => {
         const confirmation = window.confirm("Are you sure you want to delete this user?");
@@ -245,6 +252,8 @@ export default function UserDetailPage({ params }: PageProps) {
                                 onChange={(e) => setEditTeam(e.target.value)}
                                 className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                             >
+                                <option value="">No team</option>
+                                {/* Opcja dla braku przypisanego teamu */}
                                 {teams.map(team => (
                                     <option key={team.id} value={team.id}>
                                         {team.name}
@@ -252,6 +261,7 @@ export default function UserDetailPage({ params }: PageProps) {
                                 ))}
                             </select>
                         </div>
+
                         <button
                             onClick={handleSave}
                             className="bg-offblack hover:bg-darkgray text-white p-2 rounded mb-3"

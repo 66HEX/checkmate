@@ -315,7 +315,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     <div className="flex flex-row items-center justify-center ml-2">
                                         <button
                                             onClick={() => handleDeleteTask(task.id)}
-                                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded mr-0.5"
+                                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded"
                                         >
                                             Remove
                                         </button>
@@ -379,7 +379,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                 {project.tasks.map((task) => (
                                     <li
                                         key={task.id}
-                                        className={`p-2 rounded cursor-pointer transition-all text-offwhite text-lg font-medium flex items-center justify-between ${
+                                        className={`p-2 rounded cursor-pointer transition-all text-offwhite text-lg flex items-center justify-between ${
                                             task.status === 'completed'
                                                 ? 'bg-success hover:bg-successhover'
                                                 : 'bg-warning hover:bg-warninghover'

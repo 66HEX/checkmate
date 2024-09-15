@@ -88,6 +88,13 @@ export default function Sidebar() {
                                     </li>
 
                                     <li>
+                                        <Link href="/teams" onClick={closeSidebar}
+                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/teams' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
+                                            Teams
+                                        </Link>
+                                    </li>
+
+                                    <li>
                                         <Link href="/users" onClick={closeSidebar}
                                               className={`p-2 block rounded transition-colors text-lg ${pathname === '/users' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
                                             Users
