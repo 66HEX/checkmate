@@ -87,26 +87,15 @@ export default function Sidebar() {
                                         </Link>
                                     </li>
 
+
+
                                     <li>
-                                        <Link href="/teams" onClick={closeSidebar}
-                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/teams' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
-                                            Teams
+                                        <Link href="/settings" onClick={closeSidebar}
+                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/settings' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
+                                            Settings
                                         </Link>
                                     </li>
 
-                                    <li>
-                                        <Link href="/users" onClick={closeSidebar}
-                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/users' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
-                                            Users
-                                        </Link>
-                                    </li>
-
-                                    <li>
-                                        <Link href="/profile" onClick={closeSidebar}
-                                              className={`p-2 block rounded transition-colors text-lg ${pathname === '/profile' ? 'bg-lightgray text-offblack' : 'text-darkgray hover:bg-lightgray'}`}>
-                                            Profile
-                                        </Link>
-                                    </li>
                                 </>
                             )}
                         </ul>
