@@ -1,5 +1,4 @@
-"use client";
-
+"use client"
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -19,6 +18,7 @@ interface Team {
     description: string;
     created_at: string;
     members: Member[];
+    leader_id: string | null;
     leader_email: string | null;
 }
 
@@ -76,16 +76,6 @@ export default function TeamDetailPage({ params }: PageProps) {
                 return;
             }
 
-            const { data: leaderData, error: leaderError } = await supabase
-                .from('profiles')
-                .select('email')
-                .eq('id', data.leader_id)
-                .single();
-
-            if (leaderError) {
-                console.error('Error fetching leader email:', leaderError);
-            }
-
             const teamData: Team = {
                 id: data.id,
                 name: data.name,
@@ -99,8 +89,24 @@ export default function TeamDetailPage({ params }: PageProps) {
                         role: profile.role
                     }))
                 ) || [],
-                leader_email: leaderData?.email || null
+                leader_id: data.leader_id,
+                leader_email: null // Initialize as null
             };
+
+            // Fetch leader email only if there is a leader assigned
+            if (teamData.leader_id) {
+                const { data: leaderData, error: leaderError } = await supabase
+                    .from('profiles')
+                    .select('email')
+                    .eq('id', teamData.leader_id)
+                    .single();
+
+                if (leaderError) {
+                    console.error('Error fetching leader email:', leaderError);
+                } else {
+                    teamData.leader_email = leaderData?.email || null;
+                }
+            }
 
             setTeam(teamData);
             setEditName(data.name);
@@ -225,13 +231,39 @@ export default function TeamDetailPage({ params }: PageProps) {
         }
 
         try {
-            const { error } = await supabase
+            // Fetch the team to determine if the member is the leader
+            const { data: teamData, error: fetchTeamError } = await supabase
+                .from('teams')
+                .select('leader_id')
+                .eq('id', teamId)
+                .single();
+
+            if (fetchTeamError) {
+                throw fetchTeamError;
+            }
+
+            const isLeader = teamData.leader_id === memberId;
+
+            // Remove the member from the profiles table
+            const { error: removeProfileError } = await supabase
                 .from('profiles')
                 .update({ team_id: null })
                 .eq('id', memberId);
 
-            if (error) {
-                throw error;
+            if (removeProfileError) {
+                throw removeProfileError;
+            }
+
+            // Update the team to clear the leader_id if the removed member was the leader
+            if (isLeader) {
+                const { error: updateTeamError } = await supabase
+                    .from('teams')
+                    .update({ leader_id: null })
+                    .eq('id', teamId);
+
+                if (updateTeamError) {
+                    throw updateTeamError;
+                }
             }
 
             setTeam(prev => {
@@ -254,22 +286,52 @@ export default function TeamDetailPage({ params }: PageProps) {
         if (!selectedMemberId) return;
 
         try {
-            const { error } = await supabase
+            // Fetch current team data to check for existing leader
+            const { data: teamData, error: fetchTeamError } = await supabase
+                .from('teams')
+                .select('leader_id')
+                .eq('id', teamId)
+                .single();
+
+            if (fetchTeamError) {
+                throw fetchTeamError;
+            }
+
+            const isLeader = teamData.leader_id !== null;
+            const newMember = unassignedMembers.find(member => member.id === selectedMemberId);
+
+            if (!newMember) return;
+
+            // Update the member's team_id
+            const { error: updateMemberError } = await supabase
                 .from('profiles')
                 .update({ team_id: teamId })
                 .eq('id', selectedMemberId);
 
-            if (error) {
-                throw error;
+            if (updateMemberError) {
+                throw updateMemberError;
             }
 
+            // If the new member is a leader and there was no previous leader, update the team to set the new leader
+            if (newMember?.role === 'leader' && !isLeader) {
+                const { error: updateTeamError } = await supabase
+                    .from('teams')
+                    .update({ leader_id: selectedMemberId })
+                    .eq('id', teamId);
+
+                if (updateTeamError) {
+                    throw updateTeamError;
+                }
+            }
+
+            // Update local state
             setTeam(prev => {
                 if (!prev) return null;
-                const addedMember = unassignedMembers.find(member => member.id === selectedMemberId);
-                if (!addedMember) return prev;
+
+                const updatedMembers = [...prev.members, newMember];
                 return {
                     ...prev,
-                    members: sortMembersByRole([...prev.members, addedMember])
+                    members: sortMembersByRole(updatedMembers)
                 };
             });
 
@@ -303,7 +365,12 @@ export default function TeamDetailPage({ params }: PageProps) {
     return (
         <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
             <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
-                <p className="text-base mb-6">Team Leader&apos;s Email: <span className="font-medium text-base">{team.leader_email}</span></p>
+                <p className="text-base mb-6">
+                    Team Leader&apos;s Email:
+                    <span className="font-medium text-base">
+                        {team.leader_email ? team.leader_email : 'No leader assigned'}
+                    </span>
+                </p>
 
                 {isEditing ? (
                     <>
