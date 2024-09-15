@@ -136,30 +136,25 @@ export default function TeamsList() {
                 </Link>
             )}
 
-            {teams.length > 0 ? (
-                teams.map((team) => (
-                    <div
-                        key={team.id}
-                        onClick={() => handleTeamClick(team.id)}
-                        className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
-                    >
-                        <div>
-                            <h3 className="text-2xl font-bold mb-6">{team.name}</h3>
-                        </div>
-                        <div>
-                            <p className="text-base text-darkgray mb-1">
-                                Users assigned: {team.user_count ?? 0}
-                            </p>
-                            <p className="text-base text-darkgray mb-1">
-                                {team.leader ? `Team Leader: ${team.leader.firstname} ${team.leader.lastname}` : 'No leader assigned'}
-                            </p>
-                        </div>
+            {teams.length > 0 && teams.map((team) => (
+                <div
+                    key={team.id}
+                    onClick={() => handleTeamClick(team.id)}
+                    className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
+                >
+                    <div>
+                        <h3 className="text-2xl font-bold mb-6">{team.name}</h3>
                     </div>
-                ))
-            ) : (
-                <div className="text-center p-4">No teams found.</div>
-            )}
+                    <div>
+                        <p className="text-base text-darkgray mb-1">
+                            Users assigned: {team.user_count ?? 0}
+                        </p>
+                        <p className="text-base text-darkgray mb-1">
+                            {team.leader ? `Team Leader: ${team.leader.firstname} ${team.leader.lastname}` : 'No leader assigned'}
+                        </p>
+                    </div>
+                </div>
+            ))}
         </div>
     );
-
 }

@@ -208,20 +208,46 @@ export default function TeamDetailPage({ params }: PageProps) {
         }
 
         try {
-            const { error } = await supabase
+            // Fetch all members of the team
+            const { data: teamMembers, error: membersError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('team_id', teamId);
+
+            if (membersError) {
+                throw membersError;
+            }
+
+            // Remove all members from the team by setting their team_id to null
+            if (teamMembers && teamMembers.length > 0) {
+                const memberIds = teamMembers.map(member => member.id);
+                const { error: removeMembersError } = await supabase
+                    .from('profiles')
+                    .update({ team_id: null })
+                    .in('id', memberIds);
+
+                if (removeMembersError) {
+                    throw removeMembersError;
+                }
+            }
+
+            // Delete the team after members are removed
+            const { error: deleteTeamError } = await supabase
                 .from('teams')
                 .delete()
                 .eq('id', teamId);
 
-            if (error) {
-                throw error;
+            if (deleteTeamError) {
+                throw deleteTeamError;
             }
 
+            // Redirect to teams list after successful deletion
             router.push('/teams');
         } catch (error) {
             console.error('Error deleting team:', error);
         }
     };
+
 
     const handleRemoveFromTeam = async (memberId: string) => {
         const confirmation = window.confirm("Are you sure you want to remove this member from the team?");
@@ -366,10 +392,7 @@ export default function TeamDetailPage({ params }: PageProps) {
         <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
             <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
                 <p className="text-base mb-6">
-                    Team Leader&apos;s Email:
-                    <span className="font-medium text-base">
-                        {team.leader_email ? team.leader_email : 'No leader assigned'}
-                    </span>
+                    Team Leader&apos;s Email: <span className="font-medium text-base">{team.leader_email ? team.leader_email : 'No leader assigned'}</span>
                 </p>
 
                 {isEditing ? (
@@ -382,6 +405,7 @@ export default function TeamDetailPage({ params }: PageProps) {
                                     value={editName}
                                     onChange={(e) => setEditName(e.target.value)}
                                     className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                                    placeholder="Team Name"
                                     maxLength={50}
                                 />
                                 <span className="text-right text-darkgray text-sm">
@@ -397,6 +421,7 @@ export default function TeamDetailPage({ params }: PageProps) {
                                     value={editDescription}
                                     onChange={(e) => setEditDescription(e.target.value)}
                                     className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                                    placeholder="Team Description"
                                     rows={2}
                                     maxLength={500}
                                 />
@@ -408,17 +433,16 @@ export default function TeamDetailPage({ params }: PageProps) {
 
                         <h2 className="text-darkgray text-base mb-3">Team Members</h2>
                         {team.members.length > 0 ? (
-                            <ul className="space-y-4">
+                            <ul className="space-y-3">
                                 {team.members.map((member) => (
                                     <li key={member.id} className="flex flex-row items-center mb-3">
-                                        <div className="flex-1 p-2 bg-lightgray rounded flex items-center">
+                                        <div className="flex-1 p-2 border border-darkgray rounded flex items-center">
                                             <span className="flex-grow">{member.firstname} {member.lastname}</span>
-                                            <span
-                                                className="text-sm text-darkgray">{getRoleDisplayName(member.role)}</span>
+                                            <span className="text-sm text-darkgray">{getRoleDisplayName(member.role)}</span>
                                         </div>
                                         <button
                                             onClick={() => handleRemoveFromTeam(member.id)}
-                                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded ml-2"
+                                            className="bg-offblack hover:bg-darkgray text-offwhite p-2 rounded ml-2"
                                         >
                                             Remove
                                         </button>
@@ -467,8 +491,8 @@ export default function TeamDetailPage({ params }: PageProps) {
                     </>
                 ) : (
                     <>
-                        <h1 className="text-4xl font-bold mb-3">{team.name}</h1>
-                        <p className="text-lg mb-6">{team.description}</p>
+                        <h1 className="text-4xl font-bold mb-6">{team.name}</h1>
+                        <p className="text-base mb-6">{team.description}</p>
                         {isManager && (
                             <>
                                 <button
@@ -487,9 +511,9 @@ export default function TeamDetailPage({ params }: PageProps) {
                         )}
                         <h2 className="text-2xl font-semibold mb-3">Team Members</h2>
                         {team.members.length > 0 ? (
-                            <ul className="space-y-4">
+                            <ul className="space-y-3">
                                 {team.members.map((member) => (
-                                    <li key={member.id} className="p-2 text-lg bg-lightgray rounded flex justify-between items-center">
+                                    <li key={member.id} className="p-2 text-base border border-darkgray rounded flex justify-between items-center">
                                         <span>{member.firstname} {member.lastname}</span>
                                         <span className="text-sm text-darkgray">{getRoleDisplayName(member.role)}</span>
                                     </li>

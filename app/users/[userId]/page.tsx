@@ -280,9 +280,9 @@ export default function UserDetailPage({ params }: PageProps) {
                         <h1 className="text-4xl font-bold mb-6">
                             {user.firstname} {user.lastname}
                         </h1>
-                        <p className="text-lg mb-3">Role: {getRoleDisplayName(user.role)}</p>
-                        <p className="text-lg mb-3">Team: {user.team?.name || 'No team assigned'}</p>
-                        <p className="text-lg mb-6">Email: {user.email}</p>
+                        <p className="text-base mb-3">Role: {getRoleDisplayName(user.role)}</p>
+                        <p className="text-base mb-3">Team: {user.team?.name || 'No team assigned'}</p>
+                        <p className="text-base mb-6">Email: {user.email}</p>
                         {isManager && (
                             <>
                                 <button

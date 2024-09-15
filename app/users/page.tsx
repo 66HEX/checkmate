@@ -123,29 +123,25 @@ export default function UsersList() {
                 </Link>
             )}
 
-            {users.length > 0 ? (
-                users.map((user) => (
-                    <div
-                        key={user.id}
-                        onClick={() => handleUserClick(user.id)}
-                        className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
-                    >
-                        <div>
-                            <h3 className="text-2xl font-bold mb-6">{user.firstname} {user.lastname}</h3>
-                        </div>
-                        <div>
-                            <p className="text-base text-darkgray mb-1">
-                                Role: {getRoleDisplayName(user.role)}
-                            </p>
-                            <p className="text-base text-darkgray mb-1">
-                                Team: {user.team?.name || 'No team assigned'}
-                            </p>
-                        </div>
+            {users.length > 0 && users.map((user) => (
+                <div
+                    key={user.id}
+                    onClick={() => handleUserClick(user.id)}
+                    className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
+                >
+                    <div>
+                        <h3 className="text-2xl font-bold mb-6">{user.firstname} {user.lastname}</h3>
                     </div>
-                ))
-            ) : (
-                <div className="text-center p-4">No users found.</div>
-            )}
+                    <div>
+                        <p className="text-base text-darkgray mb-1">
+                            Role: {getRoleDisplayName(user.role)}
+                        </p>
+                        <p className="text-base text-darkgray mb-1">
+                            Team: {user.team?.name || 'No team assigned'}
+                        </p>
+                    </div>
+                </div>
+            ))}
         </div>
     );
 }

@@ -261,7 +261,8 @@ export default function ProjectDetailPage({ params }: PageProps) {
     return (
         <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
             <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
-                <p className="text-base mb-6">Project Manager&apos;s Email: <span className="font-medium text-base">{project.user_email}</span></p>
+                <p className="text-base mb-6">
+                    Project Manager&apos;s Email: <span className="font-medium text-base">{project.user_email}</span></p>
 
                 {isEditing ? (
                     <>
@@ -273,6 +274,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     value={editTitle}
                                     onChange={(e) => setEditTitle(e.target.value)}
                                     className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                                    placeholder="Project Title"
                                     maxLength={50}
                                 />
                                 <span className="text-right text-darkgray text-sm">
@@ -288,6 +290,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                     value={editDescription}
                                     onChange={(e) => setEditDescription(e.target.value)}
                                     className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
+                                    placeholder="Project Description"
                                     rows={4}
                                     maxLength={500}
                                 />
@@ -355,8 +358,8 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     </>
                 ) : (
                     <>
-                        <h1 className="text-4xl font-bold mb-3">{project.title}</h1>
-                        <p className="text-lg mb-6">{project.description}</p>
+                        <h1 className="text-4xl font-bold mb-6">{project.title}</h1>
+                        <p className="text-base mb-6">{project.description}</p>
                         {isManager && (
                             <>
                                 <button
@@ -379,7 +382,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                                 {project.tasks.map((task) => (
                                     <li
                                         key={task.id}
-                                        className={`p-2 rounded cursor-pointer transition-all text-offwhite text-lg flex items-center justify-between ${
+                                        className={`p-2 rounded cursor-pointer transition-all text-offwhite text-base flex items-center justify-between ${
                                             task.status === 'completed'
                                                 ? 'bg-success hover:bg-successhover'
                                                 : 'bg-warning hover:bg-warninghover'

@@ -1,9 +1,9 @@
 "use client";
+
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
-import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 
 interface Task {
     id?: number;
@@ -16,7 +16,7 @@ export default function NewProjectForm() {
     const [projectTitle, setProjectTitle] = useState<string>('');
     const [projectDescription, setProjectDescription] = useState<string>('');
     const [tasks, setTasks] = useState<Task[]>([]);
-    const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [newTaskTitle, setNewTaskTitle] = useState<string>('');
     const [projectTitleLength, setProjectTitleLength] = useState<number>(0);
     const [projectDescriptionLength, setProjectDescriptionLength] = useState<number>(0);
     const { data: session, status } = useSession();
@@ -86,39 +86,6 @@ export default function NewProjectForm() {
         setTasks(updatedTasks);
     };
 
-    const handleOnDragEnd = async (result: DropResult) => {
-        const { destination, source } = result;
-
-        if (!destination || destination.index === source.index) {
-            return;
-        }
-
-        const updatedTasks = Array.from(tasks);
-        const [movedTask] = updatedTasks.splice(source.index, 1);
-        updatedTasks.splice(destination.index, 0, movedTask);
-
-        updatedTasks.forEach((task, index) => {
-            task.order = index + 1;
-        });
-
-        setTasks(updatedTasks);
-
-        try {
-            for (const task of updatedTasks) {
-                const { error } = await supabase
-                    .from('tasks')
-                    .update({ order: task.order })
-                    .eq('id', task.id);
-
-                if (error) {
-                    throw new Error(error.message);
-                }
-            }
-        } catch (error) {
-            console.error('Error updating task order:', error);
-        }
-    };
-
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
@@ -180,12 +147,12 @@ export default function NewProjectForm() {
     }
 
     return (
-        <div className="w-screen flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
+        <div className="w-screen min-h-svh flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 bg-lightgray">
             <form
                 onSubmit={handleSubmit}
                 className="bg-offwhite p-6 rounded shadow-lg w-full max-w-xl mt-16 md:mt-0"
             >
-                <h1 className="text-3xl font-bold mb-6 text-offblack text-center">Add New Project</h1>
+                <h1 className="text-2xl font-bold mb-6 text-center">Add New Project</h1>
 
                 <div className="mb-3">
                     <label className="block text-darkgray text-base mb-1">Project Title</label>
@@ -205,7 +172,7 @@ export default function NewProjectForm() {
                     </div>
                 </div>
 
-                <div className="mb-3">
+                <div className="mb-6">
                     <label className="block text-darkgray text-base mb-1">Project Description</label>
                     <div className="flex flex-col">
                         <textarea
@@ -224,49 +191,30 @@ export default function NewProjectForm() {
                 </div>
 
                 <div className="mb-3">
-                    <label className="block text-darkgray text-base mb-1">Tasks</label>
-                    <DragDropContext onDragEnd={handleOnDragEnd}>
-                        <Droppable droppableId="tasks">
-                            {(provided) => (
-                                <ul
-                                    className="space-y-4"
-                                    {...provided.droppableProps}
-                                    ref={provided.innerRef}
+                    <label className="block text-base -mb-2">Tasks</label>
+                    <ul className="space-y-3 m-0 p-0">
+                        {tasks.map((task, index) => (
+                            <li key={index} className="flex items-center rounded">
+                                <input
+                                    type="text"
+                                    value={task.title}
+                                    onChange={(e) => handleTaskChange(index, e)}
+                                    className="w-full p-2 border border-darkgray rounded text-base"
+                                    placeholder={`Task ${index + 1}`}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveTask(index)}
+                                    className="ml-3 p-2 bg-offblack hover:bg-darkgray text-white rounded text-base"
                                 >
-                                    {tasks.map((task, index) => (
-                                        <Draggable key={index} draggableId={index.toString()} index={index}>
-                                            {(provided) => (
-                                                <li
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                    className="flex items-center rounded"
-                                                >
-                                                    <input
-                                                        type="text"
-                                                        value={task.title}
-                                                        onChange={(e) => handleTaskChange(index, e)}
-                                                        className="w-full p-2 border border-darkgray rounded text-base"
-                                                        placeholder={`Task ${index + 1}`}
-                                                        required
-                                                    />
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleRemoveTask(index)}
-                                                        className="ml-3 p-2 bg-offblack hover:bg-darkgray text-white rounded text-base"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </li>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </ul>
-                            )}
-                        </Droppable>
-                    </DragDropContext>
+                                    Remove
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
+
 
                 <div className="w-full flex flex-col mb-6">
                     <input
