@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
 
+// Define types based on your database schema
 interface Member {
     id: string;
     firstname: string;
     lastname: string;
-    role: string;
+    role: 'manager' | 'leader' | 'worker';
 }
 
 interface Team {
@@ -19,6 +20,13 @@ interface Team {
     created_at: string;
     members: Member[];
     leader_email: string | null;
+}
+
+interface ProfileResponse {
+    id: string;
+    firstname: string;
+    lastname: string;
+    role: 'manager' | 'leader' | 'worker';
 }
 
 interface PageProps {
@@ -33,7 +41,7 @@ const rolePriority = {
     worker: 3
 };
 
-const sortMembersByRole = (members: Member[]) => {
+const sortMembersByRole = (members: Member[]): Member[] => {
     return [...members].sort((a, b) => rolePriority[a.role] - rolePriority[b.role]);
 };
 
@@ -43,7 +51,7 @@ export default function TeamDetailPage({ params }: PageProps) {
     const [editName, setEditName] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [loading, setLoading] = useState(true);
-    const [userRole, setUserRole] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<'manager' | 'leader' | 'worker' | null>(null);
     const [unassignedMembers, setUnassignedMembers] = useState<Member[]>([]);
     const [selectedMemberId, setSelectedMemberId] = useState<string>('');
     const { data: session, status } = useSession();
@@ -55,11 +63,8 @@ export default function TeamDetailPage({ params }: PageProps) {
             const { data, error } = await supabase
                 .from('teams')
                 .select(`
-                    id, 
-                    name, 
-                    description, 
-                    created_at, 
-                    profiles!profiles_team_id_fkey(id, firstname, lastname, role), 
+                    id, name, description, created_at, 
+                    profiles!profiles_team_id_fkey(id, firstname, lastname, role),
                     leader_id
                 `)
                 .eq('id', teamId)
@@ -86,12 +91,14 @@ export default function TeamDetailPage({ params }: PageProps) {
                 name: data.name,
                 description: data.description,
                 created_at: data.created_at,
-                members: sortMembersByRole(data.profiles.map((profile: any) => ({
-                    id: profile.id,
-                    firstname: profile.firstname,
-                    lastname: profile.lastname,
-                    role: profile.role
-                }))) || [],
+                members: sortMembersByRole(
+                    data.profiles.map((profile: ProfileResponse) => ({
+                        id: profile.id,
+                        firstname: profile.firstname,
+                        lastname: profile.lastname,
+                        role: profile.role
+                    }))
+                ) || [],
                 leader_email: leaderData?.email || null
             };
 
@@ -139,12 +146,14 @@ export default function TeamDetailPage({ params }: PageProps) {
                 return;
             }
 
-            const unassignedMembersData: Member[] = sortMembersByRole(data.map((profile: any) => ({
-                id: profile.id,
-                firstname: profile.firstname,
-                lastname: profile.lastname,
-                role: profile.role // Use actual role from database
-            })));
+            const unassignedMembersData: Member[] = sortMembersByRole(
+                data.map((profile: ProfileResponse) => ({
+                    id: profile.id,
+                    firstname: profile.firstname,
+                    lastname: profile.lastname,
+                    role: profile.role
+                }))
+            );
 
             setUnassignedMembers(unassignedMembersData);
         } catch (error) {
@@ -272,7 +281,7 @@ export default function TeamDetailPage({ params }: PageProps) {
         }
     };
 
-    const getRoleDisplayName = (role: string) => {
+    const getRoleDisplayName = (role: 'manager' | 'leader' | 'worker') => {
         switch (role) {
             case 'worker':
                 return 'Worker';

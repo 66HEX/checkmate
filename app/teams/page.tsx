@@ -12,12 +12,12 @@ interface Team {
     description: string;
     created_at: string;
     user_count?: number; // Make user_count optional
+    leader_id?: string;  // Add leader_id
     leader?: {
         firstname: string;
         lastname: string;
     } | null;
 }
-
 
 export default function TeamsList() {
     const { data: session, status } = useSession();
