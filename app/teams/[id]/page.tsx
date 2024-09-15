@@ -422,7 +422,7 @@ export default function TeamDetailPage({ params }: PageProps) {
                                     onChange={(e) => setEditDescription(e.target.value)}
                                     className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
                                     placeholder="Team Description"
-                                    rows={2}
+                                    rows={4}
                                     maxLength={500}
                                 />
                                 <span className="text-right text-darkgray text-sm">
