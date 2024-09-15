@@ -344,7 +344,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                             onClick={handleSave}
                             className="bg-offblack hover:bg-darkgray text-white p-2 rounded mb-3"
                         >
-                            Save
+                            Save Project
                         </button>
                         <button
                             onClick={() => setIsEditing(false)}
