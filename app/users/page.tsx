@@ -6,7 +6,7 @@ import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/utils/supabaseClient";
 import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
-import Link from "next/link"; // Import Link for navigation
+import Link from "next/link";
 
 interface UserProfile {
     id: string;
@@ -120,12 +120,14 @@ export default function UsersList() {
                         className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
                     >
                         <div>
-                            <h3 className="text-2xl font-bold mb-2">{user.firstname} {user.lastname}</h3>
-                            <p className="text-base text-darkgray mb-4">{user.email}</p>
+                            <h3 className="text-2xl font-bold mb-6">{user.firstname} {user.lastname}</h3>
                         </div>
-                        <div className="mt-4">
-                            <p className="text-base text-darkgray">
+                        <div>
+                            <p className="text-base text-darkgray mb-1">
                                 Role: {getRoleDisplayName(user.role)}
+                            </p>
+                            <p className="text-base text-darkgray">
+                                {user.email}
                             </p>
                         </div>
                     </div>

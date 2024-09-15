@@ -113,7 +113,7 @@ export default function ProjectsList() {
                             <div>
                                 <h3 className="text-2xl font-bold mb-6">{project.title}</h3>
                             </div>
-                            <div className="mt-4">
+                            <div>
                                 <p className="text-base text-darkgray mb-1">
                                     {totalTasks} Tasks
                                 </p>

@@ -76,9 +76,9 @@ export default function CompletedProjects() {
                     <Link key={project.id} href={`/projects/${project.id}`}>
                         <div className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between">
                             <div>
-                                <h3 className="text-2xl font-bold mb-3">{project.title}</h3>
+                                <h3 className="text-2xl font-bold mb-6">{project.title}</h3>
                             </div>
-                            <div className="mt-4">
+                            <div>
                                 <p className="text-base text-darkgray mb-1">
                                     {totalTasks} Tasks
                                 </p>
