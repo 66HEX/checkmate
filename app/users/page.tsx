@@ -6,6 +6,7 @@ import type { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/utils/supabaseClient";
 import ArrowIcon from "@/app/components/ui/ArrowIcon/ArrowIcon";
+import Link from "next/link"; // Import Link for navigation
 
 interface UserProfile {
     id: string;
@@ -21,6 +22,7 @@ export default function UsersList() {
     const [users, setUsers] = useState<UserProfile[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [isAdmin, setIsAdmin] = useState(false); // State to track if user is admin
 
     useEffect(() => {
         if (status === "loading") return;
@@ -48,8 +50,10 @@ export default function UsersList() {
 
                 const role = roleData?.role;
                 if (role !== 'admin') {
-                    router.push("/");
+                    router.push("/"); // Redirect non-admin users to homepage
                     return;
+                } else {
+                    setIsAdmin(true); // Set admin state if the user is an admin
                 }
 
                 const { data: usersData, error: usersError } = await supabase
@@ -95,57 +99,40 @@ export default function UsersList() {
     }
 
     return (
-        <div className="flex flex-col items-center justify-start min-h-svh w-full text-offblack font-NeueMontreal p-4 sm:p-6 md:p-8 lg:p-12 xl:p-16">
-            <div
-                className="w-full max-w-full sm:max-w-lg  p-4 sm:p-6 md:p-8 bg-offwhite rounded shadow-lg mt-16 md:mt-0">
-                <h1 className="text-2xl font-bold mb-6 text-center">Users List</h1>
+        <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
+            {/* Kafel do dodawania nowego użytkownika, tylko dla administratorów */}
+            {isAdmin && (
+                <Link href="/users/new">
+                    <div className="relative w-full h-64 bg-offblack hover:bg-darkgray text-offwhite rounded shadow-lg p-6 flex items-center justify-center cursor-pointer transition-all">
+                        <span className="text-2xl font-bold">Add New User</span>
+                        <div className="absolute bottom-4 right-4 h-10 w-10">
+                            <ArrowIcon width={40} height={40} />
+                        </div>
+                    </div>
+                </Link>
+            )}
 
-                <div className="flex flex-wrap items-center gap-4 p-4 bg-offblack text-offwhite mb-3 rounded">
-                    <div className="flex-1">
-                        <strong className="text-base">First Name:</strong>
+            {users.length > 0 ? (
+                users.map((user) => (
+                    <div
+                        key={user.id}
+                        onClick={() => handleUserClick(user.id)}
+                        className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
+                    >
+                        <div>
+                            <h3 className="text-2xl font-bold mb-2">{user.firstname} {user.lastname}</h3>
+                            <p className="text-base text-darkgray mb-4">{user.email}</p>
+                        </div>
+                        <div className="mt-4">
+                            <p className="text-base text-darkgray">
+                                Role: {getRoleDisplayName(user.role)}
+                            </p>
+                        </div>
                     </div>
-                    <div className="flex-1">
-                        <strong className="text-base">Last Name:</strong>
-                    </div>
-                    <div className="flex-1">
-                        <strong className="text-base">Role:</strong>
-                    </div>
-                    <div className="flex-1">
-                        <strong className="text-base">Details:</strong>
-                    </div>
-                </div>
-
-                <div className="">
-                    {users.length > 0 ? (
-                        users.map((user) => (
-                            <div key={user.id}>
-                                <div
-                                    className="bg-gray text-offblack rounded p-4 cursor-pointer text-base my-3"
-                                    onClick={() => handleUserClick(user.id)} // Redirect on click
-                                >
-                                    <div className="flex flex-wrap items-center gap-4">
-                                        <div className="flex-1">
-                                            {user.firstname}
-                                        </div>
-                                        <div className="flex-1">
-                                            {user.lastname}
-                                        </div>
-                                        <div className="flex-1">
-                                            {getRoleDisplayName(user.role)}
-                                        </div>
-                                        <div className="flex-1 flex justify-end">
-                                            <ArrowIcon className="h-6 w-6" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="text-center p-4">No users found.</div>
-                    )}
-                </div>
-
-            </div>
+                ))
+            ) : (
+                <div className="text-center p-4">No users found.</div>
+            )}
         </div>
     );
 }

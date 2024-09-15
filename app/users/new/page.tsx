@@ -1,10 +1,11 @@
 "use client"
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase } from '@/app/utils/supabaseClient';
 import { useRouter } from 'next/navigation';
+import { useSession } from "next-auth/react";
 import Link from 'next/link';
 
-export default function RegisterPage() {
+export default function NewUserForm() {
     const [firstname, setFirstName] = useState<string>('');
     const [lastname, setLastName] = useState<string>('');
     const [email, setEmail] = useState<string>('');
@@ -13,6 +14,34 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
+    const { data: session, status } = useSession(); // Get session data
+
+    useEffect(() => {
+        const checkUserRole = async () => {
+            if (status === "loading") return; // Wait for session to load
+
+            if (!session) {
+                router.push("/"); // Redirect to home if not authenticated
+                return;
+            }
+
+            const userId = session?.user?.id ?? '';
+
+            // Fetch the user's role from the profiles table
+            const { data: profile, error: profileError } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', userId)
+                .single();
+
+            if (profileError || profile?.role !== 'admin') {
+                // Redirect to home if not admin or if there's an error
+                router.push("/");
+            }
+        };
+
+        checkUserRole();
+    }, [session, status, router]);
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,7 +80,7 @@ export default function RegisterPage() {
                     throw profileError;
                 }
 
-                alert('Registration successful! Please check your email for verification.');
+                alert('Registration successful!');
                 setEmail('');
                 setPassword('');
                 setConfirmPassword('');
@@ -75,7 +104,7 @@ export default function RegisterPage() {
     return (
         <div className="flex items-center justify-center h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
             <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
-                <h1 className="text-2xl font-bold mb-6 text-center">Create Account</h1>
+                <h1 className="text-2xl font-bold mb-6 text-center">Register New User</h1>
                 {error && <p className="text-warning mb-3 text-center">{error}</p>}
                 <form onSubmit={handleRegister}>
                     <div className="mb-3">
@@ -91,7 +120,7 @@ export default function RegisterPage() {
                         />
                     </div>
                     <div className="mb-3">
-                        <label htmlFor="lastName" className="block text-base mb-1">First Name</label>
+                        <label htmlFor="lastName" className="block text-base mb-1">Last Name</label>
                         <input
                             type="text"
                             id="lastName"
@@ -143,20 +172,10 @@ export default function RegisterPage() {
                         disabled={loading}
                         className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
                     >
-                        {loading ? 'Registering...' : 'Register'}
+                        {loading ? 'Registering...' : 'Create User'}
                     </button>
                 </form>
-                <div className="text-center mt-3">
-                    <p className="text-darkgray text-base mb-1">Already have an account?</p>
-                    <Link href="/login">
-                        <button
-                            className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
-                        >
-                            Log In
-                        </button>
-                    </Link>
-                </div>
             </div>
         </div>
     );
-};
+}

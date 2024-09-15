@@ -19,7 +19,7 @@ interface Project {
     tasks: Task[];
 }
 
-export default function Tasks() {
+export default function ProjectsList() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [userRole, setUserRole] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);

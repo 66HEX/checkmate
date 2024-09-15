@@ -18,7 +18,7 @@ interface Project {
     tasks: Task[];
 }
 
-export default function Completed() {
+export default function CompletedProjects() {
     const [projects, setProjects] = useState<Project[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const { data: session, status } = useSession();
