@@ -134,7 +134,7 @@ export default function NewUserForm() {
 
     return (
         <div className="flex items-center justify-center min-h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
-            <div className="w-full max-w-xl p-8 bg-offwhite rounded shadow-lg mt-16 md:mt-0">
+            <div className="w-full max-w-xl p-6 bg-offwhite rounded shadow-lg mt-16 md:mt-0">
                 <h1 className="text-2xl font-bold mb-6 text-center">Register New User</h1>
                 {error && <p className="text-warning mb-3 text-center">{error}</p>}
                 <form onSubmit={handleRegister}>
