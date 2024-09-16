@@ -189,9 +189,9 @@ export default function NewProjectForm() {
                     </div>
                 </div>
 
-                <div className="mb-3">
+                <div className="">
                     <label className="block text-base mb-1">Tasks</label>
-                    <ul className="space-y-3 m-0 p-0">
+                    <ul className={`space-y-3 mb-3 ${tasks.length === 0 ? 'hidden' : ''}`}>
                         {tasks.map((task, index) => (
                             <li key={index} className="flex items-center rounded">
                                 <input
@@ -222,7 +222,7 @@ export default function NewProjectForm() {
                         onChange={(e) => setNewTaskTitle(e.target.value)}
                         className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                         placeholder="New Task Title"
-                        maxLength={50} // Limit input to 50 characters
+                        maxLength={50}
                     />
                 </div>
 
