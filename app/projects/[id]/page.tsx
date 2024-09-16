@@ -33,6 +33,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [editTasks, setEditTasks] = useState<Task[]>([]);
+    const [deletedTasks, setDeletedTasks] = useState<number[]>([]); // Zadania oznaczone do usunięcia
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [userRole, setUserRole] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -136,7 +137,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
     const handleSave = async () => {
         try {
-            // Update project
+            // Update project details
             const { error: projectError } = await supabase
                 .from('projects')
                 .update({ title: editTitle, description: editDescription })
@@ -156,7 +157,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
             await Promise.all(updateTasksPromises);
 
-            // Insert new tasks that don't have IDs yet
+            // Insert new tasks (those without an ID)
             const newTasks = editTasks.filter(task => !task.id);
             if (newTasks.length > 0) {
                 const { error: newTasksError } = await supabase
@@ -166,10 +167,22 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         status: task.status,
                         order: task.order,
                         project_id: projectId,
-                    })))
+                    })));
 
                 if (newTasksError) {
                     throw newTasksError;
+                }
+            }
+
+            // Delete tasks marked for deletion
+            if (deletedTasks.length > 0) {
+                const { error: deleteError } = await supabase
+                    .from('tasks')
+                    .delete()
+                    .in('id', deletedTasks);
+
+                if (deleteError) {
+                    throw deleteError;
                 }
             }
 
@@ -194,30 +207,12 @@ export default function ProjectDetailPage({ params }: PageProps) {
         setNewTaskTitle('');
     };
 
-    const handleDeleteTask = async (taskId: number) => {
-        try {
-            const { error } = await supabase
-                .from('tasks')
-                .delete()
-                .eq('id', taskId);
+    const handleDeleteTask = (taskId: number) => {
+        // Tymczasowe oznaczenie zadania do usunięcia
+        setDeletedTasks([...deletedTasks, taskId]);
 
-            if (error) {
-                throw error;
-            }
-
-            setProject(prev => {
-                if (!prev) return null;
-                const updatedTasks = prev.tasks.filter(task => task.id !== taskId);
-                return {
-                    ...prev,
-                    tasks: updatedTasks,
-                };
-            });
-
-        } catch (error) {
-            console.error('Error deleting task:', error);
-        }
-        fetchProject();
+        // Usunięcie zadania z widoku (stanu komponentu)
+        setEditTasks(editTasks.filter(task => task.id !== taskId));
     };
 
     const handleDelete = async () => {
@@ -228,6 +223,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
 
         try {
+            // Usuwanie projektu oraz wszystkich zadań
             const { error: tasksError } = await supabase
                 .from('tasks')
                 .delete()
@@ -250,6 +246,11 @@ export default function ProjectDetailPage({ params }: PageProps) {
         } catch (error) {
             console.error('Error deleting project:', error);
         }
+    };
+
+    const handleEditClick = async () => {
+        setIsEditing(true);
+        await fetchProject(); // Fetch tasks when starting editing
     };
 
     if (status === "loading" || loading || project === null) {
@@ -300,7 +301,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                             </div>
                         </div>
 
-                        <h2 className="text-darkgray text-base mb-1">Tasks</h2>
+                        <h2 className="text-darkgray text-base mb-3">Tasks</h2>
                         {editTasks.map((task, index) => (
                             <div key={index} className="flex items-center mb-3">
                                 <input
@@ -363,11 +364,12 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         {isManager && (
                             <>
                                 <button
-                                    onClick={() => setIsEditing(true)}
+                                    onClick={handleEditClick}
                                     className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
                                 >
                                     Edit
                                 </button>
+
                                 <button
                                     onClick={handleDelete}
                                     className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-6"

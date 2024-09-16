@@ -190,6 +190,11 @@ export default function UserDetailPage({ params }: PageProps) {
         }
     };
 
+    const handleCancel = async () => {
+        setIsEditing(false);
+        await fetchUser(); // Fetch user data when canceling editing
+    };
+
     const getRoleDisplayName = (role: string) => {
         switch (role) {
             case 'manager':
@@ -269,7 +274,7 @@ export default function UserDetailPage({ params }: PageProps) {
                             Save
                         </button>
                         <button
-                            onClick={() => setIsEditing(false)}
+                            onClick={handleCancel}
                             className="bg-offblack hover:bg-darkgray text-white p-2 rounded"
                         >
                             Cancel

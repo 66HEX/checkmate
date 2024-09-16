@@ -41,9 +41,8 @@ const rolePriority = {
     worker: 3
 };
 
-const sortMembersByRole = (members: Member[]): Member[] => {
-    return [...members].sort((a, b) => rolePriority[a.role] - rolePriority[b.role]);
-};
+const sortMembersByRole = (members: Member[]): Member[] =>
+    [...members].sort((a, b) => rolePriority[a.role] - rolePriority[b.role]);
 
 export default function TeamDetailPage({ params }: PageProps) {
     const [team, setTeam] = useState<Team | null>(null);
@@ -54,6 +53,9 @@ export default function TeamDetailPage({ params }: PageProps) {
     const [userRole, setUserRole] = useState<'manager' | 'leader' | 'worker' | null>(null);
     const [unassignedMembers, setUnassignedMembers] = useState<Member[]>([]);
     const [selectedMemberId, setSelectedMemberId] = useState<string>('');
+    const [removedMembers, setRemovedMembers] = useState<string[]>([]);
+    const [addedMembers, setAddedMembers] = useState<Member[]>([]);
+    const [editingMembers, setEditingMembers] = useState<Member[]>([]);
     const { data: session, status } = useSession();
     const router = useRouter();
     const teamId = params.id;
@@ -62,11 +64,7 @@ export default function TeamDetailPage({ params }: PageProps) {
         try {
             const { data, error } = await supabase
                 .from('teams')
-                .select(`
-                    id, name, description, created_at, 
-                    profiles!profiles_team_id_fkey(id, firstname, lastname, role),
-                    leader_id
-                `)
+                .select(`id, name, description, created_at, profiles!profiles_team_id_fkey(id, firstname, lastname, role), leader_id`)
                 .eq('id', teamId)
                 .single();
 
@@ -76,39 +74,41 @@ export default function TeamDetailPage({ params }: PageProps) {
                 return;
             }
 
-            const teamData: Team = {
-                id: data.id,
-                name: data.name,
-                description: data.description,
-                created_at: data.created_at,
-                members: sortMembersByRole(
-                    data.profiles.map((profile: ProfileResponse) => ({
-                        id: profile.id,
-                        firstname: profile.firstname,
-                        lastname: profile.lastname,
-                        role: profile.role
-                    }))
-                ) || [],
-                leader_id: data.leader_id,
-                leader_email: null // Initialize as null
-            };
+            const members = sortMembersByRole(
+                data.profiles.map((profile: ProfileResponse) => ({
+                    id: profile.id,
+                    firstname: profile.firstname,
+                    lastname: profile.lastname,
+                    role: profile.role
+                }))
+            );
 
-            // Fetch leader email only if there is a leader assigned
-            if (teamData.leader_id) {
+            let leader_email: string | null = null;
+            if (data.leader_id) {
                 const { data: leaderData, error: leaderError } = await supabase
                     .from('profiles')
                     .select('email')
-                    .eq('id', teamData.leader_id)
+                    .eq('id', data.leader_id)
                     .single();
 
                 if (leaderError) {
                     console.error('Error fetching leader email:', leaderError);
                 } else {
-                    teamData.leader_email = leaderData?.email || null;
+                    leader_email = leaderData?.email || null;
                 }
             }
 
-            setTeam(teamData);
+            setTeam({
+                id: data.id,
+                name: data.name,
+                description: data.description,
+                created_at: data.created_at,
+                members,
+                leader_id: data.leader_id,
+                leader_email
+            });
+
+            setEditingMembers(members);
             setEditName(data.name);
             setEditDescription(data.description);
 
@@ -118,9 +118,9 @@ export default function TeamDetailPage({ params }: PageProps) {
     }, [teamId, router]);
 
     const fetchUserRole = useCallback(async () => {
-        try {
-            if (!session?.user?.id) return;
+        if (!session?.user?.id) return;
 
+        try {
             const { data, error } = await supabase
                 .from('profiles')
                 .select('role')
@@ -152,16 +152,14 @@ export default function TeamDetailPage({ params }: PageProps) {
                 return;
             }
 
-            const unassignedMembersData: Member[] = sortMembersByRole(
+            setUnassignedMembers(sortMembersByRole(
                 data.map((profile: ProfileResponse) => ({
                     id: profile.id,
                     firstname: profile.firstname,
                     lastname: profile.lastname,
                     role: profile.role
                 }))
-            );
-
-            setUnassignedMembers(unassignedMembersData);
+            ));
         } catch (error) {
             console.error('Error fetching unassigned members:', error);
         }
@@ -184,31 +182,75 @@ export default function TeamDetailPage({ params }: PageProps) {
 
     const handleSave = async () => {
         try {
-            const { error } = await supabase
+            const { error: updateTeamError } = await supabase
                 .from('teams')
                 .update({ name: editName, description: editDescription })
                 .eq('id', teamId);
 
-            if (error) {
-                throw error;
+            if (updateTeamError) {
+                throw updateTeamError;
             }
 
+            if (removedMembers.length > 0) {
+                const { error: removeMembersError } = await supabase
+                    .from('profiles')
+                    .update({ team_id: null })
+                    .in('id', removedMembers);
+
+                if (removeMembersError) {
+                    throw removeMembersError;
+                }
+
+                if (team?.leader_id && removedMembers.includes(team.leader_id)) {
+                    const { error: updateTeamError } = await supabase
+                        .from('teams')
+                        .update({ leader_id: null })
+                        .eq('id', teamId);
+
+                    if (updateTeamError) {
+                        throw updateTeamError;
+                    }
+                }
+            }
+
+            if (addedMembers.length > 0) {
+                const { error: addMembersError } = await supabase
+                    .from('profiles')
+                    .update({ team_id: teamId })
+                    .in('id', addedMembers.map(member => member.id));
+
+                if (addMembersError) {
+                    throw addMembersError;
+                }
+            }
+
+            setRemovedMembers([]);
+            setAddedMembers([]);
             setIsEditing(false);
-            fetchTeam();
+            fetchTeam(); // Refresh team data after saving
         } catch (error) {
             console.error('Error updating team:', error);
         }
     };
 
-    const handleDelete = async () => {
-        const confirmation = window.confirm("Are you sure you want to delete this team?");
+    const handleCancel = async () => {
+        setRemovedMembers([]);
+        setAddedMembers([]);
+        setIsEditing(false);
+        setEditingMembers(team ? [...team.members] : []); // Reset editing members
+    };
 
-        if (!confirmation) {
+    const handleEditClick = async () => {
+        setIsEditing(true);
+        await fetchTeam(); // Fetch tasks when starting editing
+    };
+
+    const handleDelete = async () => {
+        if (!window.confirm("Are you sure you want to delete this team?")) {
             return;
         }
 
         try {
-            // Fetch all members of the team
             const { data: teamMembers, error: membersError } = await supabase
                 .from('profiles')
                 .select('id')
@@ -218,7 +260,6 @@ export default function TeamDetailPage({ params }: PageProps) {
                 throw membersError;
             }
 
-            // Remove all members from the team by setting their team_id to null
             if (teamMembers && teamMembers.length > 0) {
                 const memberIds = teamMembers.map(member => member.id);
                 const { error: removeMembersError } = await supabase
@@ -231,7 +272,6 @@ export default function TeamDetailPage({ params }: PageProps) {
                 }
             }
 
-            // Delete the team after members are removed
             const { error: deleteTeamError } = await supabase
                 .from('teams')
                 .delete()
@@ -241,144 +281,40 @@ export default function TeamDetailPage({ params }: PageProps) {
                 throw deleteTeamError;
             }
 
-            // Redirect to teams list after successful deletion
             router.push('/teams');
         } catch (error) {
             console.error('Error deleting team:', error);
         }
     };
 
-
-    const handleRemoveFromTeam = async (memberId: string) => {
-        const confirmation = window.confirm("Are you sure you want to remove this member from the team?");
-
-        if (!confirmation) {
-            return;
-        }
-
-        try {
-            // Fetch the team to determine if the member is the leader
-            const { data: teamData, error: fetchTeamError } = await supabase
-                .from('teams')
-                .select('leader_id')
-                .eq('id', teamId)
-                .single();
-
-            if (fetchTeamError) {
-                throw fetchTeamError;
-            }
-
-            const isLeader = teamData.leader_id === memberId;
-
-            // Remove the member from the profiles table
-            const { error: removeProfileError } = await supabase
-                .from('profiles')
-                .update({ team_id: null })
-                .eq('id', memberId);
-
-            if (removeProfileError) {
-                throw removeProfileError;
-            }
-
-            // Update the team to clear the leader_id if the removed member was the leader
-            if (isLeader) {
-                const { error: updateTeamError } = await supabase
-                    .from('teams')
-                    .update({ leader_id: null })
-                    .eq('id', teamId);
-
-                if (updateTeamError) {
-                    throw updateTeamError;
-                }
-            }
-
-            setTeam(prev => {
-                if (!prev) return null;
-                const updatedMembers = prev.members.filter(member => member.id !== memberId);
-                return {
-                    ...prev,
-                    members: updatedMembers,
-                };
-            });
-
-            // Re-fetch unassigned members to update the list
-            fetchUnassignedMembers();
-        } catch (error) {
-            console.error('Error removing member from team:', error);
+    const handleRemoveFromTeam = (memberId: string) => {
+        if (isEditing) {
+            setEditingMembers(prev => prev.filter(member => member.id !== memberId));
+            setRemovedMembers(prev => [...prev, memberId]);
         }
     };
 
-    const handleAddMember = async () => {
+    const handleAddMember = () => {
         if (!selectedMemberId) return;
 
-        try {
-            // Fetch current team data to check for existing leader
-            const { data: teamData, error: fetchTeamError } = await supabase
-                .from('teams')
-                .select('leader_id')
-                .eq('id', teamId)
-                .single();
+        const newMember = unassignedMembers.find(member => member.id === selectedMemberId);
+        if (!newMember) return;
 
-            if (fetchTeamError) {
-                throw fetchTeamError;
-            }
-
-            const isLeader = teamData.leader_id !== null;
-            const newMember = unassignedMembers.find(member => member.id === selectedMemberId);
-
-            if (!newMember) return;
-
-            // Update the member's team_id
-            const { error: updateMemberError } = await supabase
-                .from('profiles')
-                .update({ team_id: teamId })
-                .eq('id', selectedMemberId);
-
-            if (updateMemberError) {
-                throw updateMemberError;
-            }
-
-            // If the new member is a leader and there was no previous leader, update the team to set the new leader
-            if (newMember?.role === 'leader' && !isLeader) {
-                const { error: updateTeamError } = await supabase
-                    .from('teams')
-                    .update({ leader_id: selectedMemberId })
-                    .eq('id', teamId);
-
-                if (updateTeamError) {
-                    throw updateTeamError;
-                }
-            }
-
-            // Update local state
-            setTeam(prev => {
-                if (!prev) return null;
-
-                const updatedMembers = [...prev.members, newMember];
-                return {
-                    ...prev,
-                    members: sortMembersByRole(updatedMembers)
-                };
-            });
-
-            // Remove the added member from the unassigned list
-            setUnassignedMembers(prev => sortMembersByRole(prev.filter(member => member.id !== selectedMemberId)));
-            setSelectedMemberId('');
-        } catch (error) {
-            console.error('Error adding member to team:', error);
+        if (isEditing) {
+            setEditingMembers(prev => [...prev, newMember]);
+            setAddedMembers(prev => [...prev, newMember]);
+            setRemovedMembers(prev => prev.filter(memberId => memberId !== newMember.id));
         }
+
+        setSelectedMemberId('');
     };
 
     const getRoleDisplayName = (role: 'manager' | 'leader' | 'worker') => {
         switch (role) {
-            case 'worker':
-                return 'Worker';
-            case 'leader':
-                return 'Team Leader';
-            case 'manager':
-                return 'Project Manager';
-            default:
-                return 'Unknown Role';
+            case 'worker': return 'Worker';
+            case 'leader': return 'Team Leader';
+            case 'manager': return 'Project Manager';
+            default: return 'Unknown Role';
         }
     };
 
@@ -387,6 +323,11 @@ export default function TeamDetailPage({ params }: PageProps) {
     }
 
     const isManager = userRole === 'manager';
+
+    // Filter out members that are already being edited from the unassignedMembers list
+    const filteredUnassignedMembers = unassignedMembers.filter(
+        member => !editingMembers.some(editingMember => editingMember.id === member.id)
+    );
 
     return (
         <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
@@ -432,9 +373,9 @@ export default function TeamDetailPage({ params }: PageProps) {
                         </div>
 
                         <h2 className="text-darkgray text-base mb-3">Team Members</h2>
-                        {team.members.length > 0 ? (
+                        {editingMembers.length > 0 ? (
                             <ul className="space-y-3">
-                                {team.members.map((member) => (
+                                {editingMembers.map((member) => (
                                     <li key={member.id} className="flex flex-row items-center mb-3">
                                         <div className="flex-1 p-2 border border-darkgray rounded flex items-center">
                                             <span className="flex-grow">{member.firstname} {member.lastname}</span>
@@ -461,7 +402,7 @@ export default function TeamDetailPage({ params }: PageProps) {
                                 className="w-full p-2 mb-2 border border-darkgray focus:outline-none rounded text-base"
                             >
                                 <option value="">Select a member</option>
-                                {unassignedMembers.map((member) => (
+                                {filteredUnassignedMembers.map((member) => (
                                     <option key={member.id} value={member.id}>
                                         {member.firstname} {member.lastname} - {getRoleDisplayName(member.role)}
                                     </option>
@@ -480,10 +421,10 @@ export default function TeamDetailPage({ params }: PageProps) {
                             onClick={handleSave}
                             className="bg-offblack hover:bg-darkgray text-white p-2 rounded mt-3 mb-3"
                         >
-                            Save Team
+                            Save Changes
                         </button>
                         <button
-                            onClick={() => setIsEditing(false)}
+                            onClick={handleCancel}
                             className="bg-offblack hover:bg-darkgray text-white p-2 rounded"
                         >
                             Cancel
@@ -496,7 +437,7 @@ export default function TeamDetailPage({ params }: PageProps) {
                         {isManager && (
                             <>
                                 <button
-                                    onClick={() => setIsEditing(true)}
+                                    onClick={handleEditClick}
                                     className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
                                 >
                                     Edit
