@@ -294,7 +294,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                             </div>
                         </div>
 
-                        <h2 className="text-darkgray text-base mb-3">Tasks</h2>
+                        <h2 className="text-darkgray text-base mb-1">Tasks</h2>
                         {editTasks.map((task, index) => (
                             <div key={index} className="flex items-center mb-3">
                                 <input
