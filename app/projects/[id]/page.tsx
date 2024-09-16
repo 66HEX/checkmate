@@ -380,7 +380,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         )}
                         <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
                         {project.tasks.length > 0 ? (
-                            <ul className="space-y-4">
+                            <ul className="space-y-3">
                                 {project.tasks.map((task) => (
                                     <li
                                         key={task.id}
