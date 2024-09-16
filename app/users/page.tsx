@@ -17,7 +17,7 @@ interface UserProfile {
     firstname: string;
     lastname: string;
     role: string;
-    team: Team | null; // Use Team object
+    team: Team | null;
 }
 
 export default function UsersList() {
@@ -33,14 +33,13 @@ export default function UsersList() {
             if (status === "loading") return;
 
             if (!session) {
-                router.push("/"); // Redirect if not authenticated
+                router.push("/");
                 return;
             }
 
             try {
                 const userId = session?.user?.id ?? '';
 
-                // Fetch the user's role
                 const { data: roleData, error: roleError } = await supabase
                     .from('profiles')
                     .select('role')
@@ -54,10 +53,9 @@ export default function UsersList() {
 
                 const role = roleData?.role;
                 if (role === 'manager') {
-                    setIsManager(true); // Set manager state if the user is a manager
+                    setIsManager(true);
                 }
 
-                // Fetch all users and join with teams
                 const { data: usersData, error: usersError } = await supabase
                     .from('profiles')
                     .select(`id, email, firstname, lastname, role, team:team_id (id, name)`)
@@ -67,7 +65,6 @@ export default function UsersList() {
                     console.error("Error fetching users:", usersError.message);
                     setError(usersError.message);
                 } else {
-                    // Ensure each user has a single team object
                     const formattedUsersData = usersData.map(user => ({
                         ...user,
                         team: Array.isArray(user.team) ? user.team[0] || null : user.team
@@ -86,7 +83,7 @@ export default function UsersList() {
     }, [session, status, router]);
 
     const handleUserClick = (userId: string) => {
-        router.push(`/users/${userId}`); // Redirect to user details page
+        router.push(`/users/${userId}`);
     };
 
     const getRoleDisplayName = (role: string) => {
@@ -103,7 +100,7 @@ export default function UsersList() {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return null;
     }
 
     if (error) {

@@ -40,13 +40,12 @@ export default function NewUserForm() {
             if (status === "loading") return;
 
             if (!session) {
-                router.push("/"); // Redirect if not authenticated
+                router.push("/");
                 return;
             }
 
             const userId = session?.user?.id ?? '';
 
-            // Fetch the user's role from the profiles table
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('role')
@@ -54,11 +53,11 @@ export default function NewUserForm() {
                 .single();
 
             if (profileError || profile?.role !== 'manager') {
-                router.push("/"); // Redirect if not admin
+                router.push("/");
             } else {
-                setIsManager(true); // User is admin, allow access
+                setIsManager(true);
             }
-            setCheckingRole(false); // Role check completed
+            setCheckingRole(false);
         };
 
         fetchTeams();
@@ -77,7 +76,6 @@ export default function NewUserForm() {
         setError(null);
 
         try {
-            // Rejestracja użytkownika
             const { data: user, error: authError } = await supabase.auth.signUp({
                 email,
                 password,
@@ -88,7 +86,6 @@ export default function NewUserForm() {
             }
 
             if (user?.user?.id) {
-                // Wstawienie rekordu profilu z ID zespołu
                 const { error: profileError } = await supabase
                     .from('profiles')
                     .insert({
@@ -96,8 +93,8 @@ export default function NewUserForm() {
                         email: user.user.email,
                         firstname: firstname,
                         lastname: lastname,
-                        role: role, // Wybrana rola
-                        team_id: team // ID zespołu, które będzie przypisane do team_id
+                        role: role,
+                        team_id: team
                     });
 
                 if (profileError) {
@@ -105,14 +102,13 @@ export default function NewUserForm() {
                 }
 
                 alert('Registration successful!');
-                // Resetowanie formularza
                 setEmail('');
                 setPassword('');
                 setConfirmPassword('');
                 setFirstName('');
                 setLastName('');
-                setRole('worker'); // Reset roli do domyślnej
-                setTeam(''); // Reset ID zespołu
+                setRole('worker');
+                setTeam('');
                 router.push('/login');
             } else {
                 throw new Error('User registration failed: No user ID returned.');
@@ -129,11 +125,11 @@ export default function NewUserForm() {
     };
 
     if (status === "loading" || checkingRole) {
-        return null; // Loading state while checking role
+        return null;
     }
 
     if (!isManager) {
-        return null; // Render message if not admin
+        return null;
     }
 
     return (

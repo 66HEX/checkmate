@@ -29,13 +29,12 @@ export default function NewProjectForm() {
             if (status === "loading") return;
 
             if (!session) {
-                router.push("/"); // Redirect if not authenticated
+                router.push("/");
                 return;
             }
 
             const userId = session?.user?.id ?? '';
 
-            // Fetch the user's role from the profiles table
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('role')
@@ -43,11 +42,11 @@ export default function NewProjectForm() {
                 .single();
 
             if (profileError || profile?.role !== 'manager') {
-                router.push("/"); // Redirect if not manager
+                router.push("/");
             } else {
-                setIsManager(true); // User is manager, allow access
+                setIsManager(true);
             }
-            setCheckingRole(false); // Role check completed
+            setCheckingRole(false);
         };
 
         checkUserRole();
@@ -139,11 +138,11 @@ export default function NewProjectForm() {
     };
 
     if (status === "loading" || checkingRole) {
-        return null; // Loading state while checking role
+        return null;
     }
 
     if (!isManager) {
-        return null; // Render message if not manager
+        return null;
     }
 
     return (

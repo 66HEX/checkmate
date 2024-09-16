@@ -5,7 +5,6 @@ import { supabase } from '@/app/utils/supabaseClient';
 import { useRouter } from 'next/navigation';
 import { useSession } from "next-auth/react";
 
-// Member interface based on your DB schema
 interface Member {
     id: string;
     firstname: string;
@@ -31,13 +30,12 @@ export default function NewTeamForm() {
             if (status === "loading") return;
 
             if (!session) {
-                router.push("/"); // Redirect if not authenticated
+                router.push("/");
                 return;
             }
 
             const userId = session?.user?.id ?? '';
 
-            // Fetch the user's role from the profiles table
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('role')
@@ -45,11 +43,11 @@ export default function NewTeamForm() {
                 .single();
 
             if (profileError || profile?.role !== 'manager') {
-                router.push("/"); // Redirect if not manager
+                router.push("/");
             } else {
-                setIsManager(true); // User is manager, allow access
+                setIsManager(true);
             }
-            setCheckingRole(false); // Role check completed
+            setCheckingRole(false);
         };
 
         checkUserRole();
@@ -59,8 +57,8 @@ export default function NewTeamForm() {
         try {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('id, firstname, lastname, role') // Add 'role' to query
-                .is('team_id', null); // Fetch unassigned members
+                .select('id, firstname, lastname, role')
+                .is('team_id', null);
 
             if (error) {
                 console.error('Error fetching unassigned members:', error);
@@ -81,13 +79,10 @@ export default function NewTeamForm() {
     const handleAddMember = () => {
         const selectedMember = unassignedMembers.find((member) => member.id === selectedMemberId);
         if (selectedMember && !addedMembers.some((member) => member.id === selectedMember.id)) {
-            // Add member to the list of added members
             setAddedMembers([...addedMembers, selectedMember]);
 
-            // Remove member from the list of unassigned members
             setUnassignedMembers(unassignedMembers.filter((member) => member.id !== selectedMemberId));
 
-            // Reset selected member ID
             setSelectedMemberId('');
         }
     };
@@ -108,12 +103,11 @@ export default function NewTeamForm() {
         setError(null);
 
         try {
-            // Insert new team into the 'teams' table
             const { data: team, error: teamError } = await supabase
                 .from('teams')
                 .insert({
                     name: teamName,
-                    description: teamDescription || null, // Description is optional
+                    description: teamDescription || null,
                 })
                 .select()
                 .single();
@@ -122,7 +116,6 @@ export default function NewTeamForm() {
                 throw teamError;
             }
 
-            // Assign members to the team
             for (const member of addedMembers) {
                 const { error: memberError } = await supabase
                     .from('profiles')
@@ -139,7 +132,7 @@ export default function NewTeamForm() {
             setTeamName('');
             setTeamDescription('');
             setAddedMembers([]);
-            router.push('/teams'); // Redirect to the teams list or other page
+            router.push('/teams');
         } catch (error: unknown) {
             if (error instanceof Error) {
                 setError(error.message);
@@ -160,16 +153,16 @@ export default function NewTeamForm() {
             case 'manager':
                 return 'Project Manager';
             default:
-                return 'Unknown Role'; // Although this should never happen with the updated type
+                return 'Unknown Role';
         }
     };
 
     if (status === "loading" || checkingRole) {
-        return null; // Loading state while checking role
+        return null;
     }
 
     if (!isManager) {
-        return null; // Render nothing if not manager
+        return null;
     }
 
     return (

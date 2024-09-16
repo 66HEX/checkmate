@@ -82,7 +82,6 @@ export default function ProjectsList() {
         fetchUserRole();
     }, [session, status, router, fetchProjects, fetchUserRole]);
 
-    // Usunięcie ekranu ładowania
     if (status === "loading" || loading) {
         return null;
     }

@@ -4,7 +4,6 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
 
-// Define types based on your database schema
 interface Member {
     id: string;
     firstname: string;
@@ -227,7 +226,7 @@ export default function TeamDetailPage({ params }: PageProps) {
             setRemovedMembers([]);
             setAddedMembers([]);
             setIsEditing(false);
-            fetchTeam(); // Refresh team data after saving
+            fetchTeam();
         } catch (error) {
             console.error('Error updating team:', error);
         }
@@ -237,12 +236,12 @@ export default function TeamDetailPage({ params }: PageProps) {
         setRemovedMembers([]);
         setAddedMembers([]);
         setIsEditing(false);
-        setEditingMembers(team ? [...team.members] : []); // Reset editing members
+        setEditingMembers(team ? [...team.members] : []);
     };
 
     const handleEditClick = async () => {
         setIsEditing(true);
-        await fetchTeam(); // Fetch tasks when starting editing
+        await fetchTeam();
     };
 
     const handleDelete = async () => {
@@ -324,7 +323,6 @@ export default function TeamDetailPage({ params }: PageProps) {
 
     const isManager = userRole === 'manager';
 
-    // Filter out members that are already being edited from the unassignedMembers list
     const filteredUnassignedMembers = unassignedMembers.filter(
         member => !editingMembers.some(editingMember => editingMember.id === member.id)
     );

@@ -35,7 +35,6 @@ export default function CompletedProjects() {
             }
 
             const filteredProjects = data?.filter((project: Project) => {
-                // Check if all tasks are completed
                 return project.tasks.every((task: Task) => task.status === 'completed');
             }) || [];
 
@@ -43,7 +42,7 @@ export default function CompletedProjects() {
         } catch (error) {
             console.error('Error fetching projects:', error);
         } finally {
-            setLoading(false); // Set loading to false once data is fetched
+            setLoading(false);
         }
     }, []);
 
@@ -60,7 +59,6 @@ export default function CompletedProjects() {
         fetchProjects();
     }, [session, status, router, fetchProjects]);
 
-    // Usunięcie ekranu ładowania
     if (status === "loading" || loading) {
         return null;
     }

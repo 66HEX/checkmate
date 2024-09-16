@@ -11,8 +11,8 @@ interface Team {
     name: string;
     description: string;
     created_at: string;
-    user_count?: number; // Make user_count optional
-    leader_id?: string;  // Add leader_id
+    user_count?: number;
+    leader_id?: string;
     leader?: {
         firstname: string;
         lastname: string;
@@ -32,14 +32,13 @@ export default function TeamsList() {
             if (status === "loading") return;
 
             if (!session) {
-                router.push("/"); // Redirect if not authenticated
+                router.push("/");
                 return;
             }
 
             try {
                 const userId = session?.user?.id ?? '';
 
-                // Fetch the user's role to check if they're a manager
                 const { data: roleData, error: roleError } = await supabase
                     .from('profiles')
                     .select('role')
@@ -56,7 +55,6 @@ export default function TeamsList() {
                     setIsManager(true);
                 }
 
-                // Fetch teams data
                 const { data: teamsData, error: teamsError } = await supabase
                     .from('teams')
                     .select(`id, name, description, created_at, leader_id`);
@@ -65,7 +63,6 @@ export default function TeamsList() {
                     console.error("Error fetching teams:", teamsError.message);
                     setError(teamsError.message);
                 } else {
-                    // For each team, get the leader's name and count the number of users
                     const teamsWithDetails = await Promise.all(
                         teamsData.map(async (team: Team) => {
                             // Fetch the leader's name
@@ -79,7 +76,6 @@ export default function TeamsList() {
                                 console.error(`Error fetching leader for team ${team.id}:`, leaderError.message);
                             }
 
-                            // Count the number of users
                             const { count, error: countError } = await supabase
                                 .from('profiles')
                                 .select('*', { count: 'exact' })
@@ -116,11 +112,11 @@ export default function TeamsList() {
     };
 
     if (loading) {
-        return <div>Loading...</div>;
+        return null;
     }
 
     if (error) {
-        return <div>Error: {error}</div>;
+        return null;
     }
 
     return (

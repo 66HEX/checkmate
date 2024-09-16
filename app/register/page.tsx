@@ -36,7 +36,6 @@ export default function RegisterPage() {
             }
 
             if (user?.user?.id) {
-                // Insert profile record
                 const { error: profileError } = await supabase
                     .from('profiles')
                     .insert({

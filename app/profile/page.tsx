@@ -47,12 +47,11 @@ export default function Profile() {
         }
     }, [session, status, router]);
 
-    // Funkcja mapująca rolę
     const mapRole = (role: string | undefined) => {
         if (role === 'manager') return 'Project Manager';
         if (role === 'leader') return 'Team Leader';
         if (role === 'worker') return 'Worker';
-        return role; // jeśli inna rola, zwróć ją bez zmian
+        return role;
     };
 
     const handlePasswordChange = async (e: React.FormEvent) => {

@@ -9,7 +9,6 @@ export default function Settings() {
     const router = useRouter();
 
     if (status === "loading") {
-        // Optionally render a loading state or nothing while checking authentication status
         return null;
     }
 

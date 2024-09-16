@@ -137,7 +137,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
     const handleSave = async () => {
         try {
-            // Update project details
             const { error: projectError } = await supabase
                 .from('projects')
                 .update({ title: editTitle, description: editDescription })
@@ -147,7 +146,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 throw projectError;
             }
 
-            // Update existing tasks
             const updateTasksPromises = editTasks.map(task =>
                 supabase
                     .from('tasks')
@@ -157,7 +155,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
             await Promise.all(updateTasksPromises);
 
-            // Insert new tasks (those without an ID)
             const newTasks = editTasks.filter(task => !task.id);
             if (newTasks.length > 0) {
                 const { error: newTasksError } = await supabase
@@ -174,7 +171,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 }
             }
 
-            // Delete tasks marked for deletion
             if (deletedTasks.length > 0) {
                 const { error: deleteError } = await supabase
                     .from('tasks')
@@ -208,10 +204,8 @@ export default function ProjectDetailPage({ params }: PageProps) {
     };
 
     const handleDeleteTask = (taskId: number) => {
-        // Tymczasowe oznaczenie zadania do usunięcia
         setDeletedTasks([...deletedTasks, taskId]);
 
-        // Usunięcie zadania z widoku (stanu komponentu)
         setEditTasks(editTasks.filter(task => task.id !== taskId));
     };
 
@@ -223,7 +217,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
 
         try {
-            // Usuwanie projektu oraz wszystkich zadań
             const { error: tasksError } = await supabase
                 .from('tasks')
                 .delete()
@@ -250,7 +243,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
     const handleEditClick = async () => {
         setIsEditing(true);
-        await fetchProject(); // Fetch tasks when starting editing
+        await fetchProject();
     };
 
     if (status === "loading" || loading || project === null) {

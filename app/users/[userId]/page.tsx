@@ -38,7 +38,6 @@ export default function UserDetailPage({ params }: PageProps) {
     const router = useRouter();
     const userId = params.userId;
 
-    // Fetch user data
     const fetchUser = useCallback(async () => {
         try {
             const { data, error } = await supabase
@@ -52,7 +51,6 @@ export default function UserDetailPage({ params }: PageProps) {
                 return;
             }
 
-            // Ensure team is a single object, not an array
             const userData = {
                 ...data,
                 team: Array.isArray(data.team) ? data.team[0] || null : data.team,
@@ -62,7 +60,7 @@ export default function UserDetailPage({ params }: PageProps) {
             setEditRole(userData.role);
             setEditFirstname(userData.firstname);
             setEditLastname(userData.lastname);
-            setEditTeam(userData.team?.id ?? ''); // Set the initial value for team id
+            setEditTeam(userData.team?.id ?? '');
         } catch (error) {
             console.error("Error fetching user:", error);
         } finally {
@@ -70,7 +68,6 @@ export default function UserDetailPage({ params }: PageProps) {
         }
     }, [userId, router]);
 
-    // Fetch list of teams
     const fetchTeams = useCallback(async () => {
         try {
             const { data, error } = await supabase.from('teams').select('id, name');
@@ -119,7 +116,7 @@ export default function UserDetailPage({ params }: PageProps) {
         };
 
         checkManager();
-        fetchTeams(); // Fetch teams when component mounts
+        fetchTeams();
         fetchUser();
     }, [session, status, router, fetchUser, fetchTeams]);
 
@@ -131,7 +128,7 @@ export default function UserDetailPage({ params }: PageProps) {
                     role: editRole,
                     firstname: editFirstname,
                     lastname: editLastname,
-                    team_id: editTeam || null  // Ustawienie null dla braku zespołu
+                    team_id: editTeam || null
                 })
                 .eq('id', userId);
 
@@ -146,7 +143,7 @@ export default function UserDetailPage({ params }: PageProps) {
                     role: editRole,
                     firstname: editFirstname,
                     lastname: editLastname,
-                    team: teams.find(team => team.id === editTeam) ?? null  // Zaktualizowanie teamu lub ustawienie null
+                    team: teams.find(team => team.id === editTeam) ?? null
                 };
             });
             setIsEditing(false);
@@ -192,7 +189,7 @@ export default function UserDetailPage({ params }: PageProps) {
 
     const handleCancel = async () => {
         setIsEditing(false);
-        await fetchUser(); // Fetch user data when canceling editing
+        await fetchUser();
     };
 
     const getRoleDisplayName = (role: string) => {
@@ -209,7 +206,7 @@ export default function UserDetailPage({ params }: PageProps) {
     };
 
     if (status === "loading" || loading || user === null) {
-        return <div>Loading...</div>;
+        return null;
     }
 
     return (
