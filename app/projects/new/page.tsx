@@ -191,7 +191,7 @@ export default function NewProjectForm() {
                 </div>
 
                 <div className="mb-3">
-                    <label className="block text-base -mb-2">Tasks</label>
+                    <label className="block text-base mb-1">Tasks</label>
                     <ul className="space-y-3 m-0 p-0">
                         {tasks.map((task, index) => (
                             <li key={index} className="flex items-center rounded">
