@@ -288,8 +288,12 @@ export default function TeamDetailPage({ params }: PageProps) {
 
     const handleRemoveFromTeam = (memberId: string) => {
         if (isEditing) {
-            setEditingMembers(prev => prev.filter(member => member.id !== memberId));
-            setRemovedMembers(prev => [...prev, memberId]);
+            const removedMember = editingMembers.find(member => member.id === memberId);
+            if (removedMember) {
+                setEditingMembers(prev => prev.filter(member => member.id !== memberId));
+                setRemovedMembers(prev => [...prev, memberId]);
+                setUnassignedMembers(prev => [...prev, removedMember]);
+            }
         }
     };
 
@@ -303,10 +307,12 @@ export default function TeamDetailPage({ params }: PageProps) {
             setEditingMembers(prev => [...prev, newMember]);
             setAddedMembers(prev => [...prev, newMember]);
             setRemovedMembers(prev => prev.filter(memberId => memberId !== newMember.id));
+            setUnassignedMembers(prev => prev.filter(member => member.id !== selectedMemberId));
         }
 
         setSelectedMemberId('');
     };
+
 
     const getRoleDisplayName = (role: 'manager' | 'leader' | 'worker') => {
         switch (role) {
