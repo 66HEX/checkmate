@@ -330,8 +330,8 @@ export default function TeamDetailPage({ params }: PageProps) {
     );
 
     return (
-        <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
-            <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
+        <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 ">
+            <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between mt-16 md:mt-0">
                 <p className="text-base mb-6">
                     Team Leader&apos;s Email: <span className="font-medium text-base">{team.leader_email ? team.leader_email : 'No leader assigned'}</span>
                 </p>
