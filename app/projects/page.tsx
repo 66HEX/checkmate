@@ -26,63 +26,50 @@ export default function ProjectsList() {
     const { data: session, status } = useSession();
     const router = useRouter();
 
-    const fetchProjects = useCallback(async () => {
-        try {
-            const { data, error } = await supabase
-                .from('projects')
-                .select(`id, title, description, tasks (id, status)`);
-
-            if (error) {
-                throw error;
-            }
-
-            const filteredProjects = data?.filter((project: Project) => {
-                return project.tasks.some((task: Task) => task.status === 'uncompleted');
-            }) || [];
-
-            setProjects(filteredProjects);
-        } catch (error) {
-            console.error('Error fetching projects:', error);
-        }
-    }, []);
-
-    const fetchUserRole = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         try {
             if (!session?.user?.id) return;
 
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', session.user.id)
-                .single();
+            // Pobranie projektów i roli użytkownika
+            const [projectsData, roleData] = await Promise.all([
+                supabase
+                    .from('projects')
+                    .select(`id, title, description, tasks (id, status)`),
+                supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single()
+            ]);
 
-            if (error) {
-                throw error;
-            }
+            if (projectsData.error) throw projectsData.error;
+            if (roleData.error) throw roleData.error;
 
-            setUserRole(data?.role || null);
+            // Filtrowanie projektów z niezakończonymi zadaniami
+            const filteredProjects = projectsData.data?.filter((project: Project) =>
+                project.tasks.some((task: Task) => task.status === 'uncompleted')
+            ) || [];
+
+            setProjects(filteredProjects);
+            setUserRole(roleData.data?.role || null);
         } catch (error) {
-            console.error('Error fetching user role:', error);
+            console.error('Error fetching data:', error);
         } finally {
             setLoading(false);
         }
     }, [session?.user?.id]);
 
     useEffect(() => {
-        if (status === "loading") {
-            return;
-        }
-
+        if (status === 'loading') return;
         if (!session) {
             router.push('/');
             return;
         }
 
-        fetchProjects();
-        fetchUserRole();
-    }, [session, status, router, fetchProjects, fetchUserRole]);
+        fetchData();
+    }, [session, status, router, fetchData]);
 
-    if (status === "loading" || loading) {
+    if (status === 'loading' || loading) {
         return null;
     }
 

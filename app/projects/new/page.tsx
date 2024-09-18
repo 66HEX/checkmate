@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
@@ -17,32 +17,29 @@ export default function NewProjectForm() {
     const [projectDescription, setProjectDescription] = useState<string>('');
     const [tasks, setTasks] = useState<Task[]>([]);
     const [newTaskTitle, setNewTaskTitle] = useState<string>('');
-    const [projectTitleLength, setProjectTitleLength] = useState<number>(0);
-    const [projectDescriptionLength, setProjectDescriptionLength] = useState<number>(0);
+    const [isManager, setIsManager] = useState<boolean>(false);
+    const [checkingRole, setCheckingRole] = useState<boolean>(true);
     const { data: session, status } = useSession();
-    const [isManager, setIsManager] = useState<boolean>(false); // State to track if the user is a manager
-    const [checkingRole, setCheckingRole] = useState<boolean>(true); // State to track role
     const router = useRouter();
 
     useEffect(() => {
         const checkUserRole = async () => {
-            if (status === "loading") return;
+            if (status === 'loading') return;
 
             if (!session) {
-                router.push("/");
+                router.push('/');
                 return;
             }
 
             const userId = session?.user?.id ?? '';
-
-            const { data: profile, error: profileError } = await supabase
+            const { data: profile, error } = await supabase
                 .from('profiles')
                 .select('role')
                 .eq('id', userId)
                 .single();
 
-            if (profileError || profile?.role !== 'manager') {
-                router.push("/");
+            if (error || profile?.role !== 'manager') {
+                router.push('/');
             } else {
                 setIsManager(true);
             }
@@ -52,40 +49,32 @@ export default function NewProjectForm() {
         checkUserRole();
     }, [session, status, router]);
 
-    useEffect(() => {
-        setProjectTitleLength(projectTitle.length);
-    }, [projectTitle]);
+    const handleTaskChange = useCallback((index: number, event: React.ChangeEvent<HTMLInputElement>) => {
+        setTasks(prevTasks => {
+            const updatedTasks = [...prevTasks];
+            updatedTasks[index].title = event.target.value;
+            return updatedTasks;
+        });
+    }, []);
 
-    useEffect(() => {
-        setProjectDescriptionLength(projectDescription.length);
-    }, [projectDescription]);
-
-    const handleTaskChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-        const updatedTasks = [...tasks];
-        updatedTasks[index].title = event.target.value;
-        setTasks(updatedTasks);
-    };
-
-    const handleAddTask = () => {
+    const handleAddTask = useCallback(() => {
         if (!newTaskTitle.trim()) return;
 
-        const newTask: Task = {
-            title: newTaskTitle,
-            status: 'uncompleted',
-            order: tasks.length + 1,
-        };
+        setTasks(prevTasks => [
+            ...prevTasks,
+            { title: newTaskTitle, status: 'uncompleted', order: prevTasks.length + 1 }
+        ]);
+        setNewTaskTitle('');
+    }, [newTaskTitle]);
 
-        setTasks([...tasks, newTask]);
-        setNewTaskTitle(''); // Reset the input field
-    };
+    const handleRemoveTask = useCallback((index: number) => {
+        setTasks(prevTasks => {
+            const updatedTasks = prevTasks.filter((_, i) => i !== index);
+            return updatedTasks.map((task, i) => ({ ...task, order: i + 1 }));
+        });
+    }, []);
 
-    const handleRemoveTask = (index: number) => {
-        const updatedTasks = tasks.filter((_, i) => i !== index);
-        updatedTasks.forEach((task, i) => task.order = i + 1); // Update order after removal
-        setTasks(updatedTasks);
-    };
-
-    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = useCallback(async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
         if (!session?.user?.email) {
@@ -94,50 +83,34 @@ export default function NewProjectForm() {
         }
 
         try {
-            // Start a transaction
             const { data: project, error: projectError } = await supabase
                 .from('projects')
-                .insert([{
-                    title: projectTitle,
-                    description: projectDescription,
-                    user_email: session.user.email
-                }])
+                .insert([{ title: projectTitle, description: projectDescription, user_email: session.user.email }])
                 .select('id')
                 .single();
 
-            if (projectError) {
-                throw projectError;
-            }
-
-            if (!project?.id) {
-                throw new Error('Project ID is not available');
-            }
-
-            const projectId = project.id;
-
-            const taskInserts = tasks.map((task) => ({
-                project_id: projectId,
-                title: task.title,
-                status: task.status,
-                order: task.order
-            }));
+            if (projectError) throw projectError;
+            if (!project?.id) throw new Error('Project ID is not available');
 
             const { error: tasksError } = await supabase
                 .from('tasks')
-                .insert(taskInserts);
+                .insert(tasks.map(task => ({
+                    project_id: project.id,
+                    title: task.title,
+                    status: task.status,
+                    order: task.order
+                })));
 
-            if (tasksError) {
-                throw tasksError;
-            }
+            if (tasksError) throw tasksError;
 
             router.push('/projects');
         } catch (error) {
             alert('Failed to add project: ' + (error as Error).message);
             console.error('Error adding project:', error);
         }
-    };
+    }, [projectTitle, projectDescription, tasks, session, router]);
 
-    if (status === "loading" || checkingRole) {
+    if (status === 'loading' || checkingRole) {
         return null;
     }
 
@@ -166,7 +139,7 @@ export default function NewProjectForm() {
                             maxLength={50}
                         />
                         <span className="text-right text-darkgray text-sm mt-1">
-                            {50 - projectTitleLength} characters left
+                            {50 - projectTitle.length} characters left
                         </span>
                     </div>
                 </div>
@@ -184,7 +157,7 @@ export default function NewProjectForm() {
                             maxLength={500}
                         />
                         <span className="text-right text-darkgray text-sm mt-1">
-                            {500 - projectDescriptionLength} characters left
+                            {500 - projectDescription.length} characters left
                         </span>
                     </div>
                 </div>

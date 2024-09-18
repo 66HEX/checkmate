@@ -1,15 +1,17 @@
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { supabase } from '@/app/utils/supabaseClient';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 
+type TaskStatus = 'completed' | 'uncompleted';
+
 interface Task {
     id: number;
     title: string;
-    status: 'completed' | 'uncompleted';
+    status: TaskStatus;
     order: number;
 }
 
@@ -20,6 +22,7 @@ interface Project {
     user_email: string;
     tasks: Task[];
 }
+
 
 interface PageProps {
     params: {
@@ -33,7 +36,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     const [editTitle, setEditTitle] = useState('');
     const [editDescription, setEditDescription] = useState('');
     const [editTasks, setEditTasks] = useState<Task[]>([]);
-    const [deletedTasks, setDeletedTasks] = useState<number[]>([]); // Zadania oznaczone do usunięcia
+    const [deletedTasks, setDeletedTasks] = useState<number[]>([]);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [userRole, setUserRole] = useState<string | null>(null);
     const [loading, setLoading] = useState<boolean>(true);
@@ -54,13 +57,8 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 return;
             }
 
-            const sortedTasks = data.tasks.sort((a: Task, b: Task) => a.order - b.order);
-
-            setProject({
-                ...data,
-                tasks: sortedTasks
-            } as Project);
-
+            const sortedTasks = data.tasks.sort((a, b) => a.order - b.order);
+            setProject({ ...data, tasks: sortedTasks } as Project);
             setEditTitle(data.title);
             setEditDescription(data.description);
             setEditTasks(sortedTasks);
@@ -80,10 +78,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 .eq('id', session.user.id)
                 .single();
 
-            if (error) {
-                throw error;
-            }
-
+            if (error) throw error;
             setUserRole(data?.role || null);
         } catch (error) {
             console.error('Error fetching user role:', error);
@@ -93,10 +88,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
     }, [session?.user?.id]);
 
     useEffect(() => {
-        if (status === "loading") {
-            return;
-        }
-
+        if (status === "loading") return;
         if (!session) {
             router.push('/');
             return;
@@ -107,16 +99,14 @@ export default function ProjectDetailPage({ params }: PageProps) {
     }, [session, status, router, fetchProject, fetchUserRole]);
 
     const toggleTaskStatus = async (taskId: number, currentStatus: 'completed' | 'uncompleted') => {
-        const newStatus = currentStatus === 'completed' ? 'uncompleted' : 'completed';
+        const newStatus: TaskStatus = currentStatus === 'completed' ? 'uncompleted' : 'completed';
         try {
             const { error } = await supabase
                 .from('tasks')
                 .update({ status: newStatus })
                 .eq('id', taskId);
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
             setProject(prev => {
                 if (!prev) return null;
@@ -125,63 +115,38 @@ export default function ProjectDetailPage({ params }: PageProps) {
                     task.id === taskId ? { ...task, status: newStatus } : task
                 );
 
-                return {
-                    ...prev,
-                    tasks: updatedTasks
-                };
+                return { ...prev, tasks: updatedTasks };
             });
         } catch (error) {
             console.error('Error updating task status:', error);
         }
     };
 
+
     const handleSave = async () => {
         try {
-            const { error: projectError } = await supabase
+            await supabase
                 .from('projects')
                 .update({ title: editTitle, description: editDescription })
                 .eq('id', projectId);
 
-            if (projectError) {
-                throw projectError;
-            }
-
             const existingTasks = editTasks.filter(task => task.id > 0);
             const newTasks = editTasks.filter(task => task.id < 0);
 
-            const updateTasksPromises = existingTasks.map(task =>
-                supabase
-                    .from('tasks')
-                    .update({ title: task.title, order: task.order })
-                    .eq('id', task.id)
-            );
-
-            await Promise.all(updateTasksPromises);
-
-            if (newTasks.length > 0) {
-                const { error: newTasksError } = await supabase
-                    .from('tasks')
-                    .insert(newTasks.map(task => ({
-                        title: task.title,
-                        status: task.status,
-                        order: task.order,
-                        project_id: projectId,
-                    })));
-
-                if (newTasksError) {
-                    throw newTasksError;
-                }
-            }
+            await Promise.all([
+                ...existingTasks.map(task =>
+                    supabase.from('tasks').update({ title: task.title, order: task.order }).eq('id', task.id)
+                ),
+                ...newTasks.length > 0 ? [supabase.from('tasks').insert(newTasks.map(task => ({
+                    title: task.title,
+                    status: task.status,
+                    order: task.order,
+                    project_id: projectId,
+                })))] : []
+            ]);
 
             if (deletedTasks.length > 0) {
-                const { error: deleteError } = await supabase
-                    .from('tasks')
-                    .delete()
-                    .in('id', deletedTasks);
-
-                if (deleteError) {
-                    throw deleteError;
-                }
+                await supabase.from('tasks').delete().in('id', deletedTasks);
             }
 
             setIsEditing(false);
@@ -190,7 +155,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
             console.error('Error updating project or tasks:', error);
         }
     };
-
 
     const handleAddTask = () => {
         if (!newTaskTitle.trim()) return;
@@ -210,49 +174,30 @@ export default function ProjectDetailPage({ params }: PageProps) {
         if (taskId < 0) {
             setEditTasks(editTasks.filter(task => task.id !== taskId));
         } else {
-            setDeletedTasks([...deletedTasks, taskId]);
+            setDeletedTasks(prev => [...prev, taskId]);
             setEditTasks(editTasks.filter(task => task.id !== taskId));
         }
     };
 
     const handleDelete = async () => {
-        const confirmation = window.confirm("Are you sure you want to delete this project?");
-
-        if (!confirmation) {
-            return;
-        }
-
-        try {
-            const { error: tasksError } = await supabase
-                .from('tasks')
-                .delete()
-                .eq('project_id', projectId);
-
-            if (tasksError) {
-                throw tasksError;
+        if (window.confirm("Are you sure you want to delete this project?")) {
+            try {
+                await Promise.all([
+                    supabase.from('tasks').delete().eq('project_id', projectId),
+                    supabase.from('projects').delete().eq('id', projectId)
+                ]);
+                router.push('/projects');
+            } catch (error) {
+                console.error('Error deleting project:', error);
             }
-
-            const { error: projectError } = await supabase
-                .from('projects')
-                .delete()
-                .eq('id', projectId);
-
-            if (projectError) {
-                throw projectError;
-            }
-
-            router.push('/projects');
-        } catch (error) {
-            console.error('Error deleting project:', error);
         }
     };
 
     const handleEditClick = async () => {
         setIsEditing(true);
-        await fetchProject();
     };
 
-    if (status === "loading" || loading || project === null) {
+    if (status === "loading" || loading || !project) {
         return null;
     }
 
@@ -302,15 +247,15 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
                         <h2 className="text-darkgray text-base mb-1">Tasks</h2>
                         {editTasks.map((task, index) => (
-                            <div key={index} className="flex items-center mb-3">
+                            <div key={task.id} className="flex items-center mb-3">
                                 <input
                                     type="text"
                                     value={task.title}
                                     placeholder={`Task ${index + 1}`}
                                     onChange={(e) => {
-                                        const updatedTasks = [...editTasks];
-                                        updatedTasks[index].title = e.target.value;
-                                        setEditTasks(updatedTasks);
+                                        setEditTasks(prevTasks => prevTasks.map(t =>
+                                            t.id === task.id ? { ...t, title: e.target.value } : t
+                                        ));
                                     }}
                                     className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                                 />
@@ -380,7 +325,7 @@ export default function ProjectDetailPage({ params }: PageProps) {
                         <h2 className="text-2xl font-semibold mb-3">Tasks</h2>
                         {project.tasks.length > 0 ? (
                             <ul className="space-y-3">
-                                {project.tasks.map((task) => (
+                                {project.tasks.map(task => (
                                     <li
                                         key={task.id}
                                         className={`p-2 rounded cursor-pointer transition-all text-offwhite text-base flex items-center justify-between ${
