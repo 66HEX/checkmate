@@ -16,42 +16,47 @@ export default function Profile() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string>("");
 
+    const fetchRole = async (userId: string) => {
+        try {
+            const { data, error } = await supabase
+                .from("profiles")
+                .select("role")
+                .eq("id", userId)
+                .single();
+
+            if (error) {
+                console.error("Error fetching user role:", error.message);
+            } else {
+                setRole(data?.role);
+            }
+        } catch (error) {
+            console.error("Error fetching user role:", error);
+        }
+    };
+
     useEffect(() => {
-        if (status === "loading") return;
-
-        if (!session) {
+        if (status === "authenticated") {
+            const userId = session?.user?.id;
+            if (userId) {
+                setEmail(session.user.email || "");
+                fetchRole(userId);
+            }
+        } else if (status === "unauthenticated") {
             router.push("/");
-        } else if (session?.user?.id) {
-            const userId = session.user.id;
-            setEmail(session.user.email || "");
-
-            const fetchRole = async () => {
-                try {
-                    const { data, error } = await supabase
-                        .from('profiles')
-                        .select('role')
-                        .eq('id', userId)
-                        .single(); // Fetch a single row
-
-                    if (error) {
-                        console.error("Error fetching user role:", error.message);
-                    } else {
-                        setRole(data?.role);
-                    }
-                } catch (error) {
-                    console.error("Error fetching user role:", error);
-                }
-            };
-
-            fetchRole();
         }
     }, [session, status, router]);
 
     const mapRole = (role: string | undefined) => {
-        if (role === 'manager') return 'Project Manager';
-        if (role === 'leader') return 'Team Leader';
-        if (role === 'worker') return 'Worker';
-        return role;
+        switch (role) {
+            case "manager":
+                return "Project Manager";
+            case "leader":
+                return "Team Leader";
+            case "worker":
+                return "Worker";
+            default:
+                return role;
+        }
     };
 
     const handlePasswordChange = async (e: React.FormEvent) => {
@@ -83,7 +88,7 @@ export default function Profile() {
 
     return (
         <div className="flex items-center justify-center h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
-            <div className="w-full max-w-md p-8 bg-offwhite rounded shadow-lg">
+            <div className="w-full max-w-md p-6 bg-offwhite rounded shadow-lg">
                 <h1 className="text-2xl font-bold mb-6 text-center">Profile</h1>
 
                 <div className="mb-3">
@@ -102,7 +107,7 @@ export default function Profile() {
                     <input
                         type="text"
                         id="role"
-                        value={mapRole(role) || "Loading..."} // Używamy funkcji mapującej
+                        value={mapRole(role) || "Loading..."}
                         readOnly
                         className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
                     />
@@ -118,7 +123,7 @@ export default function Profile() {
                             onChange={(e) => setNewPassword(e.target.value)}
                             required
                             className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
-                            placeholder={`New Password`}
+                            placeholder="New Password"
                         />
                     </div>
 
@@ -131,7 +136,7 @@ export default function Profile() {
                             onChange={(e) => setConfirmPassword(e.target.value)}
                             required
                             className="w-full p-2 text-offblack border border-darkgray focus:outline-none rounded text-base"
-                            placeholder={`Confirm Password`}
+                            placeholder="Confirm Password"
                         />
                     </div>
 
@@ -142,7 +147,7 @@ export default function Profile() {
                     <button
                         type="submit"
                         disabled={loading}
-                        className="w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center"
+                        className={`w-full bg-offblack hover:bg-darkgray text-offwhite p-2 text-base rounded transition-all shadow-lg flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : ""}`}
                     >
                         {loading ? "Updating..." : "Update Password"}
                     </button>
