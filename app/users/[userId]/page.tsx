@@ -1,4 +1,5 @@
 "use client";
+
 import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -15,7 +16,7 @@ interface User {
     role: string;
     firstname: string;
     lastname: string;
-    team: Team | null; // Use Team object
+    team: Team | null;
 }
 
 interface PageProps {
@@ -26,14 +27,15 @@ interface PageProps {
 
 export default function UserDetailPage({ params }: PageProps) {
     const [user, setUser] = useState<User | null>(null);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editRole, setEditRole] = useState('');
-    const [editFirstname, setEditFirstname] = useState('');
-    const [editLastname, setEditLastname] = useState('');
-    const [editTeam, setEditTeam] = useState(''); // State for editing team
+    const [editState, setEditState] = useState({
+        role: '',
+        firstname: '',
+        lastname: '',
+        team: ''
+    });
     const [loading, setLoading] = useState<boolean>(true);
-    const [isManager, setIsManager] = useState(false);
-    const [teams, setTeams] = useState<Team[]>([]); // State for list of teams
+    const [isManager, setIsManager] = useState<boolean>(false);
+    const [teams, setTeams] = useState<Team[]>([]);
     const { data: session, status } = useSession();
     const router = useRouter();
     const userId = params.userId;
@@ -51,16 +53,24 @@ export default function UserDetailPage({ params }: PageProps) {
                 return;
             }
 
-            const userData = {
-                ...data,
-                team: Array.isArray(data.team) ? data.team[0] || null : data.team,
-            };
+            const team = Array.isArray(data.team) ? data.team[0] : data.team;
 
-            setUser(userData as User);
-            setEditRole(userData.role);
-            setEditFirstname(userData.firstname);
-            setEditLastname(userData.lastname);
-            setEditTeam(userData.team?.id ?? '');
+            setUser({
+                id: data.id,
+                email: data.email,
+                role: data.role,
+                firstname: data.firstname,
+                lastname: data.lastname,
+                team: team || null
+            });
+
+            setEditState({
+                role: data.role,
+                firstname: data.firstname,
+                lastname: data.lastname,
+                team: team?.id ?? ''
+            });
+
         } catch (error) {
             console.error("Error fetching user:", error);
         } finally {
@@ -68,13 +78,12 @@ export default function UserDetailPage({ params }: PageProps) {
         }
     }, [userId, router]);
 
+
     const fetchTeams = useCallback(async () => {
         try {
             const { data, error } = await supabase.from('teams').select('id, name');
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
             setTeams(data as Team[]);
         } catch (error) {
@@ -83,10 +92,7 @@ export default function UserDetailPage({ params }: PageProps) {
     }, []);
 
     useEffect(() => {
-        if (status === "loading") {
-            return;
-        }
-
+        if (status === "loading") return;
         if (!session) {
             router.push("/");
             return;
@@ -101,13 +107,9 @@ export default function UserDetailPage({ params }: PageProps) {
                     .eq('id', userId)
                     .single();
 
-                if (roleError) {
-                    console.error("Error fetching user role:", roleError.message);
-                    return;
-                }
-
-                const role = roleData?.role;
-                if (role === 'manager') {
+                if (roleError || roleData?.role !== 'manager') {
+                    router.push("/");
+                } else {
                     setIsManager(true);
                 }
             } catch (error) {
@@ -125,87 +127,75 @@ export default function UserDetailPage({ params }: PageProps) {
             const { error } = await supabase
                 .from('profiles')
                 .update({
-                    role: editRole,
-                    firstname: editFirstname,
-                    lastname: editLastname,
-                    team_id: editTeam || null
+                    role: editState.role,
+                    firstname: editState.firstname,
+                    lastname: editState.lastname,
+                    team_id: editState.team || null
                 })
                 .eq('id', userId);
 
-            if (error) {
-                throw error;
-            }
+            if (error) throw error;
 
-            setUser((prevUser) => {
-                if (!prevUser) return null;
-                return {
-                    ...prevUser,
-                    role: editRole,
-                    firstname: editFirstname,
-                    lastname: editLastname,
-                    team: teams.find(team => team.id === editTeam) ?? null
-                };
-            });
-            setIsEditing(false);
+            setUser(prevUser => prevUser ? {
+                ...prevUser,
+                role: editState.role,
+                firstname: editState.firstname,
+                lastname: editState.lastname,
+                team: teams.find(team => team.id === editState.team) ?? null
+            } : null);
+            setEditState(prev => ({ ...prev, team: editState.team }));
         } catch (error) {
             console.error("Error updating user:", error);
         }
     };
 
-
     const handleDelete = async () => {
-        const confirmation = window.confirm("Are you sure you want to delete this user?");
-
-        if (!confirmation) {
-            return;
-        }
+        if (!window.confirm("Are you sure you want to delete this user?")) return;
 
         setLoading(true);
 
         try {
             const response = await fetch('/api/deleteUser', {
                 method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ userId }),
             });
 
             const result = await response.json();
 
-            if (!response.ok) {
-                throw new Error(result.error || 'Error deleting user');
-            }
+            if (!response.ok) throw new Error(result.error || 'Error deleting user');
 
-            console.log(result.message);
             router.push("/users");
         } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-            console.error("Error deleting user:", errorMessage);
+            console.error("Error deleting user:", error instanceof Error ? error.message : 'Unknown error occurred');
         } finally {
             setLoading(false);
         }
     };
 
     const handleCancel = async () => {
-        setIsEditing(false);
-        await fetchUser();
+        setEditState({
+            role: user?.role ?? '',
+            firstname: user?.firstname ?? '',
+            lastname: user?.lastname ?? '',
+            team: user?.team?.id ?? ''
+        });
     };
 
     const getRoleDisplayName = (role: string) => {
         switch (role) {
-            case 'manager':
-                return 'Project Manager';
-            case 'leader':
-                return 'Team Leader';
-            case 'worker':
-                return 'Worker';
-            default:
-                return 'Unknown';
+            case 'manager': return 'Project Manager';
+            case 'leader': return 'Team Leader';
+            case 'worker': return 'Worker';
+            default: return 'Unknown';
         }
     };
 
-    if (status === "loading" || loading || user === null) {
+    if (status === "loading" || loading) {
+        return null;
+    }
+
+    if (!user) {
         return null;
     }
 
@@ -213,14 +203,14 @@ export default function UserDetailPage({ params }: PageProps) {
         <div className="w-screen mx-auto flex flex-col items-center justify-center font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
             <div className="w-full h-full max-w-xl bg-offwhite text-offblack rounded shadow-lg p-6 flex flex-col justify-between">
                 <p className="text-base mb-6">User ID: <span className="font-medium text-base">{user.id}</span></p>
-                {isEditing ? (
+                {editState ? (
                     <>
                         <div className="mb-3">
                             <label className="block text-darkgray text-base mb-1">First Name</label>
                             <input
                                 type="text"
-                                value={editFirstname}
-                                onChange={(e) => setEditFirstname(e.target.value)}
+                                value={editState.firstname}
+                                onChange={(e) => setEditState(prev => ({ ...prev, firstname: e.target.value }))}
                                 className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
                             />
                         </div>
@@ -228,42 +218,36 @@ export default function UserDetailPage({ params }: PageProps) {
                             <label className="block text-darkgray text-base mb-1">Last Name</label>
                             <input
                                 type="text"
-                                value={editLastname}
-                                onChange={(e) => setEditLastname(e.target.value)}
+                                value={editState.lastname}
+                                onChange={(e) => setEditState(prev => ({ ...prev, lastname: e.target.value }))}
                                 className="w-full p-2 mb-1 border border-darkgray focus:outline-none rounded text-base"
                             />
                         </div>
                         <div className="mb-3">
                             <label className="block text-darkgray text-base mb-1">User Role</label>
-                            <div className="relative">
-                                <select
-                                    value={editRole}
-                                    onChange={(e) => setEditRole(e.target.value)}
-                                    className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
-                                >
-                                    <option value="manager">Project Manager</option>
-                                    <option value="leader">Team Leader</option>
-                                    <option value="worker">Worker</option>
-                                </select>
-                            </div>
+                            <select
+                                value={editState.role}
+                                onChange={(e) => setEditState(prev => ({ ...prev, role: e.target.value }))}
+                                className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
+                            >
+                                <option value="manager">Project Manager</option>
+                                <option value="leader">Team Leader</option>
+                                <option value="worker">Worker</option>
+                            </select>
                         </div>
                         <div className="mb-3">
                             <label className="block text-darkgray text-base mb-1">Team</label>
                             <select
-                                value={editTeam}
-                                onChange={(e) => setEditTeam(e.target.value)}
+                                value={editState.team}
+                                onChange={(e) => setEditState(prev => ({ ...prev, team: e.target.value }))}
                                 className="w-full p-2 border border-darkgray focus:outline-none rounded text-base"
                             >
                                 <option value="">No team</option>
-                                {/* Opcja dla braku przypisanego teamu */}
                                 {teams.map(team => (
-                                    <option key={team.id} value={team.id}>
-                                        {team.name}
-                                    </option>
+                                    <option key={team.id} value={team.id}>{team.name}</option>
                                 ))}
                             </select>
                         </div>
-
                         <button
                             onClick={handleSave}
                             className="bg-offblack hover:bg-darkgray text-white p-2 rounded mb-3"
@@ -288,7 +272,12 @@ export default function UserDetailPage({ params }: PageProps) {
                         {isManager && (
                             <>
                                 <button
-                                    onClick={() => setIsEditing(true)}
+                                    onClick={() => setEditState({
+                                        role: user.role,
+                                        firstname: user.firstname,
+                                        lastname: user.lastname,
+                                        team: user.team?.id ?? ''
+                                    })}
                                     className="bg-offblack hover:bg-darkgray text-white px-4 py-2 rounded mb-3"
                                 >
                                     Edit

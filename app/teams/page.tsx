@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/utils/supabaseClient";
@@ -19,6 +20,51 @@ interface Team {
     } | null;
 }
 
+const fetchUserRole = async (userId: string) => {
+    const { data: roleData, error: roleError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+    if (roleError) {
+        console.error("Error fetching user role:", roleError.message);
+        return null;
+    }
+
+    return roleData?.role;
+};
+
+const fetchTeamsDetails = async (teamsData: Team[]) => {
+    return Promise.all(teamsData.map(async (team: Team) => {
+        // Fetch the leader's name
+        const { data: leaderData, error: leaderError } = await supabase
+            .from('profiles')
+            .select('firstname, lastname')
+            .eq('id', team.leader_id)
+            .single();
+
+        if (leaderError) {
+            console.error(`Error fetching leader for team ${team.id}:`, leaderError.message);
+        }
+
+        const { count, error: countError } = await supabase
+            .from('profiles')
+            .select('*', { count: 'exact' })
+            .eq('team_id', team.id);
+
+        if (countError) {
+            console.error(`Error counting users for team ${team.id}:`, countError.message);
+        }
+
+        return {
+            ...team,
+            leader: leaderData ? { firstname: leaderData.firstname, lastname: leaderData.lastname } : null,
+            user_count: count ?? 0,
+        };
+    }));
+};
+
 export default function TeamsList() {
     const { data: session, status } = useSession();
     const router = useRouter();
@@ -27,85 +73,43 @@ export default function TeamsList() {
     const [error, setError] = useState<string | null>(null);
     const [isManager, setIsManager] = useState(false);
 
-    useEffect(() => {
-        const fetchTeams = async () => {
-            if (status === "loading") return;
+    const fetchTeams = useCallback(async () => {
+        if (status === "loading") return;
 
-            if (!session) {
-                router.push("/");
-                return;
+        if (!session) {
+            router.push("/");
+            return;
+        }
+
+        try {
+            const userId = session?.user?.id ?? '';
+            const role = await fetchUserRole(userId);
+
+            if (role === 'manager') {
+                setIsManager(true);
             }
 
-            try {
-                const userId = session?.user?.id ?? '';
+            const { data: teamsData, error: teamsError } = await supabase
+                .from('teams')
+                .select(`id, name, description, created_at, leader_id`);
 
-                const { data: roleData, error: roleError } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', userId)
-                    .single();
-
-                if (roleError) {
-                    console.error("Error fetching user role:", roleError.message);
-                    return;
-                }
-
-                const role = roleData?.role;
-                if (role === 'manager') {
-                    setIsManager(true);
-                }
-
-                const { data: teamsData, error: teamsError } = await supabase
-                    .from('teams')
-                    .select(`id, name, description, created_at, leader_id`);
-
-                if (teamsError) {
-                    console.error("Error fetching teams:", teamsError.message);
-                    setError(teamsError.message);
-                } else {
-                    const teamsWithDetails = await Promise.all(
-                        teamsData.map(async (team: Team) => {
-                            // Fetch the leader's name
-                            const { data: leaderData, error: leaderError } = await supabase
-                                .from('profiles')
-                                .select('firstname, lastname')
-                                .eq('id', team.leader_id)
-                                .single();
-
-                            if (leaderError) {
-                                console.error(`Error fetching leader for team ${team.id}:`, leaderError.message);
-                            }
-
-                            const { count, error: countError } = await supabase
-                                .from('profiles')
-                                .select('*', { count: 'exact' })
-                                .eq('team_id', team.id);
-
-                            if (countError) {
-                                console.error(`Error counting users for team ${team.id}:`, countError.message);
-                            }
-
-                            return {
-                                ...team,
-                                leader: leaderData ? { firstname: leaderData.firstname, lastname: leaderData.lastname } : null,
-                                user_count: count ?? 0,
-                            };
-                        })
-                    );
-
-                    setTeams(teamsWithDetails);
-                }
-            } catch (error) {
-                console.error("Unexpected error:", error);
-                setError("Unexpected error occurred.");
-            } finally {
-                setLoading(false);
+            if (teamsError) {
+                throw teamsError;
             }
-        };
 
-        fetchTeams();
+            const teamsWithDetails = await fetchTeamsDetails(teamsData);
+            setTeams(teamsWithDetails);
+        } catch (error) {
+            console.error("Unexpected error:", error);
+            setError("Unexpected error occurred.");
+        } finally {
+            setLoading(false);
+        }
     }, [session, status, router]);
 
+    useEffect(() => {
+        fetchTeams();
+    }, [fetchTeams]);
 
     const handleTeamClick = (teamId: string) => {
         router.push(`/teams/${teamId}`);
@@ -132,25 +136,29 @@ export default function TeamsList() {
                 </Link>
             )}
 
-            {teams.length > 0 && teams.map((team) => (
-                <div
-                    key={team.id}
-                    onClick={() => handleTeamClick(team.id)}
-                    className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
-                >
-                    <div>
-                        <h3 className="text-2xl font-bold mb-6">{team.name}</h3>
+            {teams.length > 0 ? (
+                teams.map((team) => (
+                    <div
+                        key={team.id}
+                        onClick={() => handleTeamClick(team.id)}
+                        className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
+                    >
+                        <div>
+                            <h3 className="text-2xl font-bold mb-6">{team.name}</h3>
+                        </div>
+                        <div>
+                            <p className="text-base text-darkgray mb-1">
+                                Users assigned: {team.user_count ?? 0}
+                            </p>
+                            <p className="text-base text-darkgray mb-1">
+                                {team.leader ? `Team Leader: ${team.leader.firstname} ${team.leader.lastname}` : 'No leader assigned'}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-base text-darkgray mb-1">
-                            Users assigned: {team.user_count ?? 0}
-                        </p>
-                        <p className="text-base text-darkgray mb-1">
-                            {team.leader ? `Team Leader: ${team.leader.firstname} ${team.leader.lastname}` : 'No leader assigned'}
-                        </p>
-                    </div>
-                </div>
-            ))}
+                ))
+            ) : (
+                <p>No teams available.</p>
+            )}
         </div>
     );
 }

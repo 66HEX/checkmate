@@ -23,17 +23,21 @@ export default function NewUserForm() {
 
     useEffect(() => {
         const fetchTeams = async () => {
-            const { data: teamsData, error: teamsError } = await supabase
-                .from('teams')
-                .select('*');
+            try {
+                const { data: teamsData, error: teamsError } = await supabase
+                    .from('teams')
+                    .select('*');
 
-            if (teamsError) {
-                console.error("Error fetching teams:", teamsError.message);
-                setError(teamsError.message);
-                return;
+                if (teamsError) {
+                    console.error("Error fetching teams:", teamsError.message);
+                    setError(teamsError.message);
+                } else {
+                    setTeams(teamsData || []);
+                }
+            } catch (error) {
+                console.error("Unexpected error fetching teams:", error);
+                setError('An unexpected error occurred while fetching teams.');
             }
-
-            setTeams(teamsData || []);
         };
 
         const checkUserRole = async () => {
@@ -46,18 +50,25 @@ export default function NewUserForm() {
 
             const userId = session?.user?.id ?? '';
 
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', userId)
-                .single();
+            try {
+                const { data: profile, error: profileError } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', userId)
+                    .single();
 
-            if (profileError || profile?.role !== 'manager') {
+                if (profileError || profile?.role !== 'manager') {
+                    router.push("/");
+                } else {
+                    setIsManager(true);
+                }
+            } catch (error) {
+                console.error("Unexpected error checking user role:", error);
+                setError('An unexpected error occurred while checking user role.');
                 router.push("/");
-            } else {
-                setIsManager(true);
+            } finally {
+                setCheckingRole(false);
             }
-            setCheckingRole(false);
         };
 
         fetchTeams();
@@ -69,6 +80,11 @@ export default function NewUserForm() {
 
         if (password !== confirmPassword) {
             setError('Passwords do not match');
+            return;
+        }
+
+        if (password.length < 6) {
+            setError('Password should be at least 6 characters long');
             return;
         }
 
@@ -102,6 +118,7 @@ export default function NewUserForm() {
                 }
 
                 alert('Registration successful!');
+                // Reset form fields
                 setEmail('');
                 setPassword('');
                 setConfirmPassword('');
@@ -191,7 +208,6 @@ export default function NewUserForm() {
                             ))}
                         </select>
                     </div>
-
                     <div className="mb-3">
                         <label htmlFor="email" className="block text-base mb-1">Email</label>
                         <input

@@ -1,5 +1,6 @@
-"use client"
-import { useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { supabase } from "@/app/utils/supabaseClient";
@@ -28,59 +29,58 @@ export default function UsersList() {
     const [error, setError] = useState<string | null>(null);
     const [isManager, setIsManager] = useState(false);
 
+    const fetchUserRole = useCallback(async () => {
+        if (!session?.user?.id) return;
+        try {
+            const { data: roleData, error: roleError } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', session.user.id)
+                .single();
+
+            if (roleError) throw roleError;
+
+            if (roleData?.role === 'manager') {
+                setIsManager(true);
+            }
+        } catch (error) {
+            console.error("Error fetching user role:", error);
+            setError("Error fetching user role.");
+        }
+    }, [session]);
+
+    const fetchUsers = useCallback(async () => {
+        try {
+            const { data: usersData, error: usersError } = await supabase
+                .from('profiles')
+                .select(`id, email, firstname, lastname, role, team:team_id (id, name)`)
+                .neq('id', session?.user?.id);
+
+            if (usersError) throw usersError;
+
+            const formattedUsersData = usersData.map(user => ({
+                ...user,
+                team: Array.isArray(user.team) ? user.team[0] || null : user.team
+            }));
+
+            setUsers(formattedUsersData || []);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+            setError("Error fetching users.");
+        }
+    }, [session]);
+
     useEffect(() => {
-        const fetchData = async () => {
-            if (status === "loading") return;
+        if (status === "loading") return;
 
-            if (!session) {
-                router.push("/");
-                return;
-            }
+        if (!session) {
+            router.push("/");
+            return;
+        }
 
-            try {
-                const userId = session?.user?.id ?? '';
-
-                const { data: roleData, error: roleError } = await supabase
-                    .from('profiles')
-                    .select('role')
-                    .eq('id', userId)
-                    .single();
-
-                if (roleError) {
-                    console.error("Error fetching user role:", roleError.message);
-                    return;
-                }
-
-                const role = roleData?.role;
-                if (role === 'manager') {
-                    setIsManager(true);
-                }
-
-                const { data: usersData, error: usersError } = await supabase
-                    .from('profiles')
-                    .select(`id, email, firstname, lastname, role, team:team_id (id, name)`)
-                    .neq('id', userId);
-
-                if (usersError) {
-                    console.error("Error fetching users:", usersError.message);
-                    setError(usersError.message);
-                } else {
-                    const formattedUsersData = usersData.map(user => ({
-                        ...user,
-                        team: Array.isArray(user.team) ? user.team[0] || null : user.team
-                    }));
-                    setUsers(formattedUsersData || []);
-                }
-            } catch (error) {
-                console.error("Unexpected error:", error);
-                setError("Unexpected error occurred.");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, [session, status, router]);
+        fetchUserRole();
+        fetchUsers().finally(() => setLoading(false));
+    }, [session, status, router, fetchUserRole, fetchUsers]);
 
     const handleUserClick = (userId: string) => {
         router.push(`/users/${userId}`);
@@ -99,13 +99,9 @@ export default function UsersList() {
         }
     };
 
-    if (loading) {
-        return null;
-    }
+    if (loading) return null;;
 
-    if (error) {
-        return <div>Error: {error}</div>;
-    }
+    if (error) return null;;
 
     return (
         <div className="w-screen grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-5xl mx-auto font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16 mt-16 md:mt-0">
@@ -120,25 +116,29 @@ export default function UsersList() {
                 </Link>
             )}
 
-            {users.length > 0 && users.map((user) => (
-                <div
-                    key={user.id}
-                    onClick={() => handleUserClick(user.id)}
-                    className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
-                >
-                    <div>
-                        <h3 className="text-2xl font-bold mb-6">{user.firstname} {user.lastname}</h3>
+            {users.length > 0 ? (
+                users.map(user => (
+                    <div
+                        key={user.id}
+                        onClick={() => handleUserClick(user.id)}
+                        className="w-full h-64 bg-offwhite hover:bg-gray text-offblack rounded shadow-lg p-6 cursor-pointer transition-all flex flex-col justify-between"
+                    >
+                        <div>
+                            <h3 className="text-2xl font-bold mb-6">{user.firstname} {user.lastname}</h3>
+                        </div>
+                        <div>
+                            <p className="text-base text-darkgray mb-1">
+                                Role: {getRoleDisplayName(user.role)}
+                            </p>
+                            <p className="text-base text-darkgray mb-1">
+                                Team: {user.team?.name || 'No team assigned'}
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <p className="text-base text-darkgray mb-1">
-                            Role: {getRoleDisplayName(user.role)}
-                        </p>
-                        <p className="text-base text-darkgray mb-1">
-                            Team: {user.team?.name || 'No team assigned'}
-                        </p>
-                    </div>
-                </div>
-            ))}
+                ))
+            ) : (
+                <p>No users available.</p>
+            )}
         </div>
     );
 }

@@ -1,4 +1,5 @@
-"use client"
+"use client";
+
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
@@ -181,9 +182,15 @@ export default function TeamDetailPage({ params }: PageProps) {
 
     const handleSave = async () => {
         try {
+            const newLeaderId = editingMembers.find(member => member.role === 'leader')?.id || null;
+
             const { error: updateTeamError } = await supabase
                 .from('teams')
-                .update({ name: editName, description: editDescription })
+                .update({
+                    name: editName,
+                    description: editDescription,
+                    leader_id: newLeaderId
+                })
                 .eq('id', teamId);
 
             if (updateTeamError) {
@@ -232,16 +239,16 @@ export default function TeamDetailPage({ params }: PageProps) {
         }
     };
 
-    const handleCancel = async () => {
+
+    const handleCancel = () => {
         setRemovedMembers([]);
         setAddedMembers([]);
         setIsEditing(false);
         setEditingMembers(team ? [...team.members] : []);
     };
 
-    const handleEditClick = async () => {
+    const handleEditClick = () => {
         setIsEditing(true);
-        await fetchTeam();
     };
 
     const handleDelete = async () => {
@@ -313,7 +320,6 @@ export default function TeamDetailPage({ params }: PageProps) {
         setSelectedMemberId('');
     };
 
-
     const getRoleDisplayName = (role: 'manager' | 'leader' | 'worker') => {
         switch (role) {
             case 'worker': return 'Worker';
@@ -342,7 +348,7 @@ export default function TeamDetailPage({ params }: PageProps) {
 
                 {isEditing ? (
                     <>
-                        <div className="mb-3">
+                        <div className="mb-6">
                             <label className="block text-darkgray text-base mb-1">Team Name</label>
                             <div className="flex flex-col">
                                 <input
@@ -398,7 +404,7 @@ export default function TeamDetailPage({ params }: PageProps) {
                             <p className="text-lg">No members found for this team.</p>
                         )}
 
-                        <div className="mb-3 mt-6">
+                        <div className="mb-6 mt-6">
                             <label className="block text-darkgray text-base mb-1">Add Member</label>
                             <select
                                 value={selectedMemberId}
@@ -416,7 +422,7 @@ export default function TeamDetailPage({ params }: PageProps) {
 
                         <button
                             onClick={handleAddMember}
-                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded mt-3"
+                            className="bg-offblack hover:bg-darkgray text-white p-2 rounded"
                         >
                             Add Member
                         </button>

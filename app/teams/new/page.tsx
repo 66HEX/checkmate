@@ -9,48 +9,44 @@ interface Member {
     id: string;
     firstname: string;
     lastname: string;
-    role: 'manager' | 'leader' | 'worker'; // Add role types
+    role: 'manager' | 'leader' | 'worker';
 }
 
 export default function NewTeamForm() {
-    const [teamName, setTeamName] = useState<string>(''); // State for team name
-    const [teamDescription, setTeamDescription] = useState<string>(''); // State for team description
+    const [teamName, setTeamName] = useState<string>('');
+    const [teamDescription, setTeamDescription] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [isManager, setIsManager] = useState<boolean>(false); // State to check if the user is a manager
-    const [checkingRole, setCheckingRole] = useState<boolean>(true); // State to check role
-    const [unassignedMembers, setUnassignedMembers] = useState<Member[]>([]); // State for unassigned members
-    const [selectedMemberId, setSelectedMemberId] = useState<string>(''); // State for selected member
-    const [addedMembers, setAddedMembers] = useState<Member[]>([]); // State for added members
+    const [isManager, setIsManager] = useState<boolean>(false);
+    const [checkingRole, setCheckingRole] = useState<boolean>(true);
+    const [unassignedMembers, setUnassignedMembers] = useState<Member[]>([]);
+    const [selectedMemberId, setSelectedMemberId] = useState<string>('');
+    const [addedMembers, setAddedMembers] = useState<Member[]>([]);
     const router = useRouter();
     const { data: session, status } = useSession();
 
-    useEffect(() => {
-        const checkUserRole = async () => {
-            if (status === "loading") return;
+    const checkUserRole = useCallback(async () => {
+        if (status === "loading") return;
 
-            if (!session) {
-                router.push("/");
-                return;
-            }
+        if (!session) {
+            router.push("/");
+            return;
+        }
 
-            const userId = session?.user?.id ?? '';
+        const userId = session?.user?.id ?? '';
 
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', userId)
-                .single();
+        const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', userId)
+            .single();
 
-            if (profileError || profile?.role !== 'manager') {
-                router.push("/");
-            } else {
-                setIsManager(true);
-            }
-            setCheckingRole(false);
-        };
-
-        checkUserRole();
+        if (profileError || profile?.role !== 'manager') {
+            router.push("/");
+        } else {
+            setIsManager(true);
+        }
+        setCheckingRole(false);
     }, [session, status, router]);
 
     const fetchUnassignedMembers = useCallback(async () => {
@@ -71,24 +67,27 @@ export default function NewTeamForm() {
         }
     }, []);
 
+    useEffect(() => {
+        checkUserRole();
+    }, [checkUserRole]);
 
     useEffect(() => {
-        fetchUnassignedMembers();
-    }, [fetchUnassignedMembers]);
+        if (isManager) {
+            fetchUnassignedMembers();
+        }
+    }, [isManager, fetchUnassignedMembers]);
 
     const handleAddMember = () => {
-        const selectedMember = unassignedMembers.find((member) => member.id === selectedMemberId);
-        if (selectedMember && !addedMembers.some((member) => member.id === selectedMember.id)) {
-            setAddedMembers([...addedMembers, selectedMember]);
-
-            setUnassignedMembers(unassignedMembers.filter((member) => member.id !== selectedMemberId));
-
+        const selectedMember = unassignedMembers.find(member => member.id === selectedMemberId);
+        if (selectedMember && !addedMembers.some(member => member.id === selectedMember.id)) {
+            setAddedMembers(prev => [...prev, selectedMember]);
+            setUnassignedMembers(prev => prev.filter(member => member.id !== selectedMemberId));
             setSelectedMemberId('');
         }
     };
 
     const handleRemoveMember = (memberId: string) => {
-        setAddedMembers(addedMembers.filter((member) => member.id !== memberId));
+        setAddedMembers(prev => prev.filter(member => member.id !== memberId));
     };
 
     const handleCreateTeam = async (e: React.FormEvent) => {
@@ -105,10 +104,7 @@ export default function NewTeamForm() {
         try {
             const { data: team, error: teamError } = await supabase
                 .from('teams')
-                .insert({
-                    name: teamName,
-                    description: teamDescription || null,
-                })
+                .insert({ name: teamName, description: teamDescription || null })
                 .select()
                 .single();
 
@@ -116,7 +112,7 @@ export default function NewTeamForm() {
                 throw teamError;
             }
 
-            for (const member of addedMembers) {
+            await Promise.all(addedMembers.map(async (member) => {
                 const { error: memberError } = await supabase
                     .from('profiles')
                     .update({ team_id: team.id })
@@ -125,20 +121,15 @@ export default function NewTeamForm() {
                 if (memberError) {
                     throw memberError;
                 }
-            }
+            }));
 
             alert('Team created successfully!');
-            // Reset form fields
             setTeamName('');
             setTeamDescription('');
             setAddedMembers([]);
             router.push('/teams');
-        } catch (error: unknown) {
-            if (error instanceof Error) {
-                setError(error.message);
-            } else {
-                setError('An unexpected error occurred');
-            }
+        } catch (error) {
+            setError(error instanceof Error ? error.message : 'An unexpected error occurred');
         } finally {
             setLoading(false);
         }
@@ -146,14 +137,10 @@ export default function NewTeamForm() {
 
     const getRoleDisplayName = (role: 'manager' | 'leader' | 'worker'): string => {
         switch (role) {
-            case 'worker':
-                return 'Worker';
-            case 'leader':
-                return 'Team Leader';
-            case 'manager':
-                return 'Project Manager';
-            default:
-                return 'Unknown Role';
+            case 'worker': return 'Worker';
+            case 'leader': return 'Team Leader';
+            case 'manager': return 'Project Manager';
+            default: return 'Unknown Role';
         }
     };
 
@@ -166,12 +153,12 @@ export default function NewTeamForm() {
     }
 
     return (
-        <div className="flex  justify-center min-h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
+        <div className="flex justify-center min-h-svh w-screen text-offblack font-NeueMontreal p-4 md:p-8 lg:p-12 xl:p-16">
             <div className="w-full max-w-xl p-6 bg-offwhite rounded shadow-lg mt-16 md:mt-0">
                 <h1 className="text-2xl font-bold mb-6 text-center">Create New Team</h1>
                 {error && <p className="text-warning mb-3 text-center">{error}</p>}
                 <form onSubmit={handleCreateTeam}>
-                    <div className="mb-3">
+                    <div className="mb-6">
                         <label htmlFor="teamName" className="block text-base mb-1">Team Name</label>
                         <div className="flex flex-col">
                             <input
@@ -215,8 +202,7 @@ export default function NewTeamForm() {
                                     <li key={member.id} className="flex justify-between items-center">
                                         <div className="flex-1 p-2 border border-darkgray rounded flex items-center">
                                             <span className="flex-grow">{member.firstname} {member.lastname}</span>
-                                            <span
-                                                className="text-sm text-darkgray">{getRoleDisplayName(member.role)}</span>
+                                            <span className="text-sm text-darkgray">{getRoleDisplayName(member.role)}</span>
                                         </div>
                                         <button
                                             type="button"
