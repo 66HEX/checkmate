@@ -146,7 +146,10 @@ export default function ProjectDetailPage({ params }: PageProps) {
                 throw projectError;
             }
 
-            const updateTasksPromises = editTasks.map(task =>
+            const existingTasks = editTasks.filter(task => task.id > 0);
+            const newTasks = editTasks.filter(task => task.id < 0);
+
+            const updateTasksPromises = existingTasks.map(task =>
                 supabase
                     .from('tasks')
                     .update({ title: task.title, order: task.order })
@@ -155,7 +158,6 @@ export default function ProjectDetailPage({ params }: PageProps) {
 
             await Promise.all(updateTasksPromises);
 
-            const newTasks = editTasks.filter(task => !task.id);
             if (newTasks.length > 0) {
                 const { error: newTasksError } = await supabase
                     .from('tasks')
@@ -189,11 +191,12 @@ export default function ProjectDetailPage({ params }: PageProps) {
         }
     };
 
+
     const handleAddTask = () => {
         if (!newTaskTitle.trim()) return;
 
         const newTask: Task = {
-            id: 0,
+            id: -Date.now(),
             title: newTaskTitle,
             status: 'uncompleted',
             order: editTasks.length + 1,
@@ -204,9 +207,12 @@ export default function ProjectDetailPage({ params }: PageProps) {
     };
 
     const handleDeleteTask = (taskId: number) => {
-        setDeletedTasks([...deletedTasks, taskId]);
-
-        setEditTasks(editTasks.filter(task => task.id !== taskId));
+        if (taskId < 0) {
+            setEditTasks(editTasks.filter(task => task.id !== taskId));
+        } else {
+            setDeletedTasks([...deletedTasks, taskId]);
+            setEditTasks(editTasks.filter(task => task.id !== taskId));
+        }
     };
 
     const handleDelete = async () => {
